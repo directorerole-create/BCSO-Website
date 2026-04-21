@@ -145,42 +145,48 @@
   }
 }
 
-/* Police light bar — realistic double-flash strobe */
+/* Police light bar — individual cell alternating strobe */
 .police-unit {
-  width: 16px;
-  height: 9px;
+  width: 14px;
+  height: 10px;
   border-radius: 2px;
+  background: rgba(30, 30, 40, 0.4);
 }
 
-/* Red: double flash in first half, dark in second half */
-.police-red {
-  background: rgba(230, 57, 70, 0.08);
-  animation: strobeRed 1.2s linear infinite;
+/* Odd cells: RED first half, BLUE second half */
+.police-cell-odd {
+  animation: strobeOdd 1.0s linear infinite;
 }
 
-/* Blue: dark in first half, double flash in second half */
-.police-blue {
-  background: rgba(29, 111, 204, 0.08);
-  animation: strobeBlue 1.2s linear infinite;
+/* Even cells: BLUE first half, RED second half — true alternating */
+.police-cell-even {
+  animation: strobeEven 1.0s linear infinite;
 }
 
-@keyframes strobeRed {
-  0%   { background: #FF1F30; box-shadow: 0 0 6px #FF1F30, 0 0 16px rgba(255,31,48,0.8), 0 0 32px rgba(255,31,48,0.4); }
-  8%   { background: rgba(230,57,70,0.06); box-shadow: none; }
-  16%  { background: #FF1F30; box-shadow: 0 0 6px #FF1F30, 0 0 16px rgba(255,31,48,0.8), 0 0 32px rgba(255,31,48,0.4); }
-  24%  { background: rgba(230,57,70,0.06); box-shadow: none; }
-  50%  { background: rgba(230,57,70,0.06); box-shadow: none; }
-  100% { background: rgba(230,57,70,0.06); box-shadow: none; }
+@keyframes strobeOdd {
+  0%   { background: #FF2233; box-shadow: 0 0 5px #FF2233, 0 0 14px rgba(255,34,51,0.9), 0 0 28px rgba(255,34,51,0.5); }
+  7%   { background: rgba(230,57,70,0.07); box-shadow: none; }
+  14%  { background: #FF2233; box-shadow: 0 0 5px #FF2233, 0 0 14px rgba(255,34,51,0.9), 0 0 28px rgba(255,34,51,0.5); }
+  21%  { background: rgba(230,57,70,0.07); box-shadow: none; }
+  49%  { background: rgba(230,57,70,0.07); box-shadow: none; }
+  50%  { background: #1A6FFF; box-shadow: 0 0 5px #1A6FFF, 0 0 14px rgba(26,111,255,0.9), 0 0 28px rgba(26,111,255,0.5); }
+  57%  { background: rgba(29,111,204,0.07); box-shadow: none; }
+  64%  { background: #1A6FFF; box-shadow: 0 0 5px #1A6FFF, 0 0 14px rgba(26,111,255,0.9), 0 0 28px rgba(26,111,255,0.5); }
+  71%  { background: rgba(29,111,204,0.07); box-shadow: none; }
+  100% { background: rgba(29,111,204,0.07); box-shadow: none; }
 }
 
-@keyframes strobeBlue {
-  0%   { background: rgba(29,111,204,0.06); box-shadow: none; }
-  49%  { background: rgba(29,111,204,0.06); box-shadow: none; }
-  50%  { background: #1A6FFF; box-shadow: 0 0 6px #1A6FFF, 0 0 16px rgba(26,111,255,0.8), 0 0 32px rgba(26,111,255,0.4); }
-  58%  { background: rgba(29,111,204,0.06); box-shadow: none; }
-  66%  { background: #1A6FFF; box-shadow: 0 0 6px #1A6FFF, 0 0 16px rgba(26,111,255,0.8), 0 0 32px rgba(26,111,255,0.4); }
-  74%  { background: rgba(29,111,204,0.06); box-shadow: none; }
-  100% { background: rgba(29,111,204,0.06); box-shadow: none; }
+@keyframes strobeEven {
+  0%   { background: #1A6FFF; box-shadow: 0 0 5px #1A6FFF, 0 0 14px rgba(26,111,255,0.9), 0 0 28px rgba(26,111,255,0.5); }
+  7%   { background: rgba(29,111,204,0.07); box-shadow: none; }
+  14%  { background: #1A6FFF; box-shadow: 0 0 5px #1A6FFF, 0 0 14px rgba(26,111,255,0.9), 0 0 28px rgba(26,111,255,0.5); }
+  21%  { background: rgba(29,111,204,0.07); box-shadow: none; }
+  49%  { background: rgba(29,111,204,0.07); box-shadow: none; }
+  50%  { background: #FF2233; box-shadow: 0 0 5px #FF2233, 0 0 14px rgba(255,34,51,0.9), 0 0 28px rgba(255,34,51,0.5); }
+  57%  { background: rgba(230,57,70,0.07); box-shadow: none; }
+  64%  { background: #FF2233; box-shadow: 0 0 5px #FF2233, 0 0 14px rgba(255,34,51,0.9), 0 0 28px rgba(255,34,51,0.5); }
+  71%  { background: rgba(230,57,70,0.07); box-shadow: none; }
+  100% { background: rgba(230,57,70,0.07); box-shadow: none; }
 }
 
 /* Ambient glow sweep on hero */

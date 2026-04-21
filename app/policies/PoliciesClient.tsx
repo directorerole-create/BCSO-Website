@@ -17,13 +17,13 @@ function renderContent(content: string) {
     if (line.startsWith("- ")) {
       const text = line.slice(2).replace(/\*\*([^*]+)\*\*/g, "<strong class='text-[var(--text-primary)] font-semibold'>$1</strong>");
       return (
-        <li key={i} className="ml-5 mb-1 text-[var(--text-secondary)] text-sm leading-relaxed list-disc"
+        <li key={i} className="ml-5 mb-2 text-[var(--text-secondary)] text-[15px] leading-relaxed list-disc"
           dangerouslySetInnerHTML={{ __html: text }} />
       );
     }
     const formatted = line.replace(/\*\*([^*]+)\*\*/g, "<strong class='text-[var(--text-primary)] font-semibold'>$1</strong>");
     return (
-      <p key={i} className="text-[var(--text-secondary)] text-sm leading-relaxed mb-2"
+      <p key={i} className="text-[var(--text-secondary)] text-[15px] leading-relaxed mb-3"
         dangerouslySetInnerHTML={{ __html: formatted }} />
     );
   });
@@ -33,8 +33,8 @@ function SubsectionView({ sub }: { sub: SopSubsection }) {
   return (
     <div id={sub.id} className="mb-8">
       <div className="flex items-center gap-2 mb-3">
-        <span className="font-mono text-xs text-badge/70 font-bold">{sub.number}</span>
-        <h3 className="font-display text-base font-semibold text-primary-color tracking-wide">{sub.title}</h3>
+        <span className="font-mono text-sm text-badge/70 font-bold">{sub.number}</span>
+        <h3 className="font-display text-lg font-semibold text-primary-color tracking-wide">{sub.title}</h3>
       </div>
       <div className="pl-4 border-l border-[var(--border)]">
         {renderContent(sub.content)}
