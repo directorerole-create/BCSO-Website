@@ -145,48 +145,42 @@
   }
 }
 
-/* Police light bar animation */
-.light-bar {
-  display: flex;
-  gap: 3px;
-  align-items: center;
+/* Police light bar — realistic double-flash strobe */
+.police-unit {
+  width: 16px;
+  height: 9px;
+  border-radius: 2px;
 }
 
-.light-unit {
-  width: 18px;
-  height: 10px;
-  border-radius: 3px;
+/* Red: double flash in first half, dark in second half */
+.police-red {
+  background: rgba(230, 57, 70, 0.08);
+  animation: strobeRed 1.2s linear infinite;
 }
 
-.light-red {
-  animation: flashRed 1s ease-in-out infinite;
+/* Blue: dark in first half, double flash in second half */
+.police-blue {
+  background: rgba(29, 111, 204, 0.08);
+  animation: strobeBlue 1.2s linear infinite;
 }
 
-.light-blue {
-  animation: flashBlue 1s ease-in-out infinite;
+@keyframes strobeRed {
+  0%   { background: #FF1F30; box-shadow: 0 0 6px #FF1F30, 0 0 16px rgba(255,31,48,0.8), 0 0 32px rgba(255,31,48,0.4); }
+  8%   { background: rgba(230,57,70,0.06); box-shadow: none; }
+  16%  { background: #FF1F30; box-shadow: 0 0 6px #FF1F30, 0 0 16px rgba(255,31,48,0.8), 0 0 32px rgba(255,31,48,0.4); }
+  24%  { background: rgba(230,57,70,0.06); box-shadow: none; }
+  50%  { background: rgba(230,57,70,0.06); box-shadow: none; }
+  100% { background: rgba(230,57,70,0.06); box-shadow: none; }
 }
 
-.light-red:nth-child(odd) {
-  animation-delay: 0s;
-}
-.light-red:nth-child(even) {
-  animation-delay: 0.5s;
-}
-.light-blue:nth-child(odd) {
-  animation-delay: 0.5s;
-}
-.light-blue:nth-child(even) {
-  animation-delay: 0s;
-}
-
-@keyframes flashRed {
-  0%, 45%, 55%, 100% { background-color: rgba(230, 57, 70, 0.15); box-shadow: none; }
-  48%, 52% { background-color: #E63946; box-shadow: 0 0 12px #E63946, 0 0 25px rgba(230, 57, 70, 0.6); }
-}
-
-@keyframes flashBlue {
-  0%, 45%, 55%, 100% { background-color: rgba(29, 111, 204, 0.15); box-shadow: none; }
-  48%, 52% { background-color: #1D6FCC; box-shadow: 0 0 12px #1D6FCC, 0 0 25px rgba(29, 111, 204, 0.6); }
+@keyframes strobeBlue {
+  0%   { background: rgba(29,111,204,0.06); box-shadow: none; }
+  49%  { background: rgba(29,111,204,0.06); box-shadow: none; }
+  50%  { background: #1A6FFF; box-shadow: 0 0 6px #1A6FFF, 0 0 16px rgba(26,111,255,0.8), 0 0 32px rgba(26,111,255,0.4); }
+  58%  { background: rgba(29,111,204,0.06); box-shadow: none; }
+  66%  { background: #1A6FFF; box-shadow: 0 0 6px #1A6FFF, 0 0 16px rgba(26,111,255,0.8), 0 0 32px rgba(26,111,255,0.4); }
+  74%  { background: rgba(29,111,204,0.06); box-shadow: none; }
+  100% { background: rgba(29,111,204,0.06); box-shadow: none; }
 }
 
 /* Ambient glow sweep on hero */
