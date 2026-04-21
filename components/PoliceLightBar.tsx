@@ -6,24 +6,18 @@ const DURATION = "800ms";
 export function PoliceLightBar({ className = "" }: { className?: string }) {
   return (
     <div className={`lb-bar ${className}`} aria-hidden>
-      {/* 3 blue units */}
-      {[0, 1, 2].map(i => (
-        <div key={`b${i}`} className="lb-unit lb-blue">
-          <div className="lb-inner lb-inner-blue" />
-          {Array.from({ length: BULBS }).map((_, j) => (
-            <span key={j} className="lb-bulb lb-bulb-blue" />
-          ))}
-        </div>
-      ))}
-      {/* 3 red units — delayed by half duration */}
-      {[0, 1, 2].map(i => (
-        <div key={`r${i}`} className="lb-unit lb-red">
-          <div className="lb-inner lb-inner-red" />
-          {Array.from({ length: BULBS }).map((_, j) => (
-            <span key={j} className="lb-bulb lb-bulb-red" />
-          ))}
-        </div>
-      ))}
+      {/* Sequence 2: alternating B R B R B R */}
+      {[0, 1, 2, 3, 4, 5].map(i => {
+        const isBlue = i % 2 === 0;
+        return (
+          <div key={i} className={`lb-unit ${isBlue ? "lb-blue" : "lb-red"}`}>
+            <div className={`lb-inner ${isBlue ? "lb-inner-blue" : "lb-inner-red"}`} />
+            {Array.from({ length: BULBS }).map((_, j) => (
+              <span key={j} className={`lb-bulb ${isBlue ? "lb-bulb-blue" : "lb-bulb-red"}`} />
+            ))}
+          </div>
+        );
+      })}
 
       <style>{`
         .lb-bar {
