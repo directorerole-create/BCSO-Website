@@ -145,49 +145,7 @@
   }
 }
 
-/* Police light bar — individual cell alternating strobe */
-.police-unit {
-  width: 14px;
-  height: 10px;
-  border-radius: 2px;
-  background: rgba(30, 30, 40, 0.4);
-}
-
-/* Odd cells: RED first half, BLUE second half */
-.police-cell-odd {
-  animation: strobeOdd 1.0s linear infinite;
-}
-
-/* Even cells: BLUE first half, RED second half — true alternating */
-.police-cell-even {
-  animation: strobeEven 1.0s linear infinite;
-}
-
-@keyframes strobeOdd {
-  0%   { background: #FF2233; box-shadow: 0 0 5px #FF2233, 0 0 14px rgba(255,34,51,0.9), 0 0 28px rgba(255,34,51,0.5); }
-  7%   { background: rgba(230,57,70,0.07); box-shadow: none; }
-  14%  { background: #FF2233; box-shadow: 0 0 5px #FF2233, 0 0 14px rgba(255,34,51,0.9), 0 0 28px rgba(255,34,51,0.5); }
-  21%  { background: rgba(230,57,70,0.07); box-shadow: none; }
-  49%  { background: rgba(230,57,70,0.07); box-shadow: none; }
-  50%  { background: #1A6FFF; box-shadow: 0 0 5px #1A6FFF, 0 0 14px rgba(26,111,255,0.9), 0 0 28px rgba(26,111,255,0.5); }
-  57%  { background: rgba(29,111,204,0.07); box-shadow: none; }
-  64%  { background: #1A6FFF; box-shadow: 0 0 5px #1A6FFF, 0 0 14px rgba(26,111,255,0.9), 0 0 28px rgba(26,111,255,0.5); }
-  71%  { background: rgba(29,111,204,0.07); box-shadow: none; }
-  100% { background: rgba(29,111,204,0.07); box-shadow: none; }
-}
-
-@keyframes strobeEven {
-  0%   { background: #1A6FFF; box-shadow: 0 0 5px #1A6FFF, 0 0 14px rgba(26,111,255,0.9), 0 0 28px rgba(26,111,255,0.5); }
-  7%   { background: rgba(29,111,204,0.07); box-shadow: none; }
-  14%  { background: #1A6FFF; box-shadow: 0 0 5px #1A6FFF, 0 0 14px rgba(26,111,255,0.9), 0 0 28px rgba(26,111,255,0.5); }
-  21%  { background: rgba(29,111,204,0.07); box-shadow: none; }
-  49%  { background: rgba(29,111,204,0.07); box-shadow: none; }
-  50%  { background: #FF2233; box-shadow: 0 0 5px #FF2233, 0 0 14px rgba(255,34,51,0.9), 0 0 28px rgba(255,34,51,0.5); }
-  57%  { background: rgba(230,57,70,0.07); box-shadow: none; }
-  64%  { background: #FF2233; box-shadow: 0 0 5px #FF2233, 0 0 14px rgba(255,34,51,0.9), 0 0 28px rgba(255,34,51,0.5); }
-  71%  { background: rgba(230,57,70,0.07); box-shadow: none; }
-  100% { background: rgba(230,57,70,0.07); box-shadow: none; }
-}
+/* Police light bar styles live in PoliceLightBar.tsx (scoped inline) */
 
 /* Ambient glow sweep on hero */
 .glow-sweep {

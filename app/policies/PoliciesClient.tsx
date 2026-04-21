@@ -129,40 +129,46 @@ export function PoliciesClient({ sections }: Props) {
                 <div key={section.id}>
                   <button
                     onClick={() => {
-                      selectSection(section.id);
-                      toggleSection(section.id);
+                      if (isActive) {
+                        toggleSection(section.id);
+                      } else {
+                        selectSection(section.id);
+                      }
                     }}
-                    className={`w-full flex items-center gap-2 px-3 py-2 text-left transition-all group ${
+                    className={`w-full flex items-center gap-2 px-3 py-2.5 text-left transition-all group ${
                       isActive
                         ? "bg-[var(--badge)]/15 border-r-2 border-[var(--badge)]"
                         : "hover:bg-[var(--bg-panel-alt)]"
                     }`}
                   >
-                    <span className={`font-mono text-[10px] font-bold w-5 flex-shrink-0 ${isActive ? "text-badge" : "text-[var(--text-muted)]"}`}>
+                    <span className={`font-mono text-xs font-bold w-6 flex-shrink-0 ${isActive ? "text-badge" : "text-[var(--text-muted)]"}`}>
                       {section.number}
                     </span>
-                    <span className={`font-display text-[10px] tracking-wide flex-1 leading-tight ${isActive ? "text-badge font-semibold" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"}`}>
+                    <span className={`font-display text-xs tracking-wide flex-1 leading-tight ${isActive ? "text-badge font-semibold" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"}`}>
                       {section.title}
                     </span>
-                    <ChevronDown className={`w-3 h-3 flex-shrink-0 transition-transform ${isActive ? "text-badge" : "text-[var(--text-muted)]"} ${isExpanded && isActive ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 ${isActive ? "text-badge" : "text-[var(--text-muted)]"} ${isExpanded ? "rotate-180" : ""}`} />
                   </button>
 
-                  {/* Subsection list — show when section is active */}
-                  {isActive && isExpanded && (
-                    <div className="bg-[var(--bg-panel-alt)]/50">
+                  {/* Subsection list */}
+                  {isExpanded && (
+                    <div className="bg-[var(--bg-panel-alt)]/50 border-b border-[var(--border)]/40">
                       {section.subsections.map(sub => (
                         <a
                           key={sub.id}
                           href={`#${sub.id}`}
                           onClick={e => {
                             e.preventDefault();
-                            const el = document.getElementById(sub.id);
-                            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                            if (!isActive) selectSection(section.id);
+                            setTimeout(() => {
+                              const el = document.getElementById(sub.id);
+                              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                            }, 50);
                           }}
-                          className="flex items-center gap-2 pl-8 pr-3 py-1.5 text-[var(--text-muted)] hover:text-badge transition-colors"
+                          className="flex items-center gap-2 pl-8 pr-3 py-2 text-[var(--text-muted)] hover:text-badge hover:bg-[var(--badge)]/5 transition-colors"
                         >
-                          <span className="font-mono text-[9px] text-badge/50 w-6 flex-shrink-0">{sub.number}</span>
-                          <span className="font-display text-[9px] tracking-wide leading-tight truncate">{sub.title}</span>
+                          <span className="font-mono text-[10px] text-badge/50 w-7 flex-shrink-0">{sub.number}</span>
+                          <span className="font-display text-[11px] tracking-wide leading-tight">{sub.title}</span>
                         </a>
                       ))}
                     </div>
