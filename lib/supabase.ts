@@ -15,6 +15,17 @@ export type RosterMember = {
   status: "Active" | "Inactive" | "LOA";
   avatar_url: string | null;
   joined_date: string | null;
+  phone_number: string | null;
+  april_total_activity: string | null;
+  april_patrol_hours: string | null;
+  april_admin_hours: string | null;
+  april_patrol_logs: string | null;
+  march_total_activity: string | null;
+  march_patrol_hours: string | null;
+  march_admin_hours: string | null;
+  march_patrol_logs: string | null;
+  patrol_last_seen: string | null;
+  admin_last_seen: string | null;
   updated_at: string;
 };
 
