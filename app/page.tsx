@@ -52,7 +52,7 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen hex-bg">
       {/* Hero */}
-      <section className="relative pt-32 pb-24 px-4 overflow-hidden scanlines">
+      <section className="relative pt-16 pb-24 px-4 overflow-hidden scanlines">
         {/* Background layers */}
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg-primary)] via-[var(--bg-secondary)] to-[var(--bg-primary)]" />

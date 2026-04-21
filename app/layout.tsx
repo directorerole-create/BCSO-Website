@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { Navbar } from "@/components/Navbar";
+import { Sidebar } from "@/components/Sidebar";
 import { AmbientPoliceGlow } from "@/components/PoliceLightBar";
 
 export const metadata: Metadata = {
-  title: "Sheriff's Department | Roleplay Division",
-  description: "Official portal for the Sheriff's Department Roleplay Division — Roster, Policies, and Staff Directory.",
-  icons: { icon: "/favicon.ico" },
+  title: "BCSO | Blaine County Sheriff's Office",
+  description: "Official portal for the Blaine County Sheriff's Office — Roster, Policies, and Staff Directory.",
+  icons: { icon: "/BCSOBadge.png" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -20,8 +20,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen antialiased">
         <ThemeProvider>
           <AmbientPoliceGlow />
-          <Navbar />
-          <main className="relative z-10">{children}</main>
+          <div className="flex min-h-screen">
+            <Sidebar />
+            {/* Offset content by sidebar width on desktop */}
+            <main className="flex-1 min-w-0 md:ml-60 relative z-10">
+              {children}
+            </main>
+          </div>
         </ThemeProvider>
       </body>
     </html>

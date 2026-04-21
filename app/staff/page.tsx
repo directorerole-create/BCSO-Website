@@ -125,7 +125,7 @@ export default async function StaffPage() {
   const other = staff.filter((m) => !["Sheriff", "Undersheriff", "Captain", "Lieutenant"].includes(m.rank));
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-4">
+    <div className="min-h-screen pt-8 pb-16 px-4">
       {/* Header */}
       <div className="max-w-6xl mx-auto mb-14 text-center">
         <span className="font-display text-[10px] tracking-[0.5em] text-badge uppercase block mb-3">Department Portal</span>

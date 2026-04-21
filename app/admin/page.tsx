@@ -206,7 +206,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-4">
+    <div className="min-h-screen pt-8 pb-16 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-10">
           <span className="font-display text-[10px] tracking-[0.5em] text-badge uppercase block mb-2">Admin Portal</span>

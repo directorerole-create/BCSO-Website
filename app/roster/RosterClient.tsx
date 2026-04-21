@@ -1,254 +1,212 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Search, Shield, Users, ChevronDown, ChevronUp, Phone, Calendar, Clock, FileText } from "lucide-react";
+import { Search } from "lucide-react";
 import { RosterMember } from "@/lib/supabase";
+import Image from "next/image";
 
-const RANK_ORDER: Record<string, number> = {
-  "Sheriff": 1, "Undersheriff": 2, "Chief Deputy": 3, "Colonel": 4,
-  "Captain": 5, "Lieutenant": 6, "Sergeant": 7, "Detective": 8,
-  "Senior Deputy": 9, "Deputy": 10, "Probationary Deputy": 11,
-};
+const RANK_TIERS: { label: string; ranks: string[]; color: string }[] = [
+  { label: "Administration",  ranks: ["Sheriff","Undersheriff","Chief Deputy","Colonel"],                            color: "text-yellow-400" },
+  { label: "Senior Staff",    ranks: ["Captain","Lieutenant"],                                                       color: "text-orange-400" },
+  { label: "Staff",           ranks: ["Sergeant","Staff Sergeant"],                                                  color: "text-blue-400"   },
+  { label: "Deputies",        ranks: ["Senior Deputy","Deputy","Probationary Deputy","Detective","Patrol Deputy"],   color: "text-[var(--text-secondary)]" },
+];
+
+function tierOf(rank: string): number {
+  for (let i = 0; i < RANK_TIERS.length; i++) {
+    if (RANK_TIERS[i].ranks.includes(rank)) return i;
+  }
+  return RANK_TIERS.length;
+}
+
+function rankColor(rank: string): string {
+  const tier = RANK_TIERS.find(t => t.ranks.includes(rank));
+  return tier?.color ?? "text-badge";
+}
 
 function StatusBadge({ status }: { status: string }) {
   const cls = status === "Active" ? "status-active" : status === "LOA" ? "status-loa" : "status-inactive";
-  return <span className={`text-[10px] font-display tracking-widest uppercase px-2 py-0.5 rounded-sm font-medium ${cls}`}>{status}</span>;
+  return <span className={`text-[10px] font-display tracking-wider uppercase px-2 py-0.5 rounded font-medium ${cls}`}>{status}</span>;
 }
 
-function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
-  if (avatarUrl) return <img src={avatarUrl} alt={name} className="w-10 h-10 rounded-full object-cover border border-[var(--border)]" />;
-  const initials = name.split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase();
-  return (
-    <div className="w-10 h-10 rounded-full border border-[var(--badge)]/30 bg-[var(--badge)]/10 flex items-center justify-center flex-shrink-0">
-      <span className="font-display text-xs font-bold text-badge">{initials}</span>
-    </div>
-  );
+function groupByTier(members: RosterMember[]) {
+  const groups: { tier: typeof RANK_TIERS[0]; members: RosterMember[] }[] = [];
+  const sorted = [...members].sort((a, b) => {
+    const ta = tierOf(a.rank), tb = tierOf(b.rank);
+    if (ta !== tb) return ta - tb;
+    const ra = a.rank.localeCompare(b.rank);
+    if (ra !== 0) return ra;
+    return a.name.localeCompare(b.name);
+  });
+  for (const tier of RANK_TIERS) {
+    const group = sorted.filter(m => tier.ranks.includes(m.rank));
+    if (group.length) groups.push({ tier, members: group });
+  }
+  const ungrouped = sorted.filter(m => tierOf(m.rank) === RANK_TIERS.length);
+  if (ungrouped.length) groups.push({ tier: { label: "Personnel", ranks: [], color: "text-[var(--text-muted)]" }, members: ungrouped });
+  return groups;
 }
 
-function ActivityStat({ label, value }: { label: string; value: string | null }) {
-  if (!value) return null;
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-[9px] font-display tracking-wider text-[var(--text-muted)] uppercase">{label}</span>
-      <span className="text-xs font-mono text-[var(--text-secondary)]">{value}</span>
-    </div>
-  );
-}
-
-function RosterRow({ member }: { member: RosterMember }) {
-  const [expanded, setExpanded] = useState(false);
-  const isCommand = ["Sheriff", "Undersheriff", "Chief Deputy", "Colonel"].includes(member.rank);
-
-  const hasActivity = member.april_total_activity || member.march_total_activity ||
-    member.patrol_last_seen || member.admin_last_seen || member.phone_number;
-
-  return (
-    <>
-      <div
-        className={`grid grid-cols-[2.5rem_1fr_1fr_1fr_1fr_1fr_auto] gap-4 items-center px-5 py-4 hover:bg-[var(--bg-panel-alt)] transition-colors group cursor-pointer ${expanded ? "bg-[var(--bg-panel-alt)]" : ""}`}
-        onClick={() => hasActivity && setExpanded(!expanded)}
-      >
-        <Avatar name={member.name} avatarUrl={member.avatar_url} />
-
-        <div>
-          <div className="font-body font-semibold text-[var(--text-primary)] group-hover:text-badge transition-colors">
-            {member.name}
-          </div>
-          {member.joined_date && (
-            <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
-              Joined {new Date(member.joined_date).toLocaleDateString("en-US", { year: "numeric", month: "short" })}
-            </div>
-          )}
-        </div>
-
-        <span className={`font-display text-xs tracking-wide font-semibold ${isCommand ? "text-badge" : "text-[var(--text-secondary)]"}`}>
-          {member.rank}
-        </span>
-
-        <div className="text-sm text-[var(--text-secondary)] truncate">{member.division ?? "—"}</div>
-
-        <div className="flex flex-col gap-0.5">
-          {member.callsign && <span className="font-mono text-xs text-badge tracking-wider">{member.callsign}</span>}
-          {member.badge_number && <span className="font-mono text-xs text-[var(--text-muted)]">#{member.badge_number}</span>}
-        </div>
-
-        <StatusBadge status={member.status} />
-
-        <div className="w-5">
-          {hasActivity && (
-            expanded
-              ? <ChevronUp className="w-4 h-4 text-[var(--text-muted)]" />
-              : <ChevronDown className="w-4 h-4 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
-          )}
-        </div>
-      </div>
-
-      {/* Expanded detail row */}
-      {expanded && (
-        <div className="px-5 pb-4 bg-[var(--bg-panel-alt)] border-b border-[var(--border)]">
-          <div className="ml-14 grid grid-cols-2 md:grid-cols-4 gap-6 pt-1 pb-2">
-
-            {member.phone_number && (
-              <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                <Phone className="w-3 h-3 text-badge flex-shrink-0" />
-                {member.phone_number}
-              </div>
-            )}
-
-            {(member.april_total_activity || member.march_total_activity) && (
-              <div className="col-span-2 md:col-span-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Clock className="w-3 h-3 text-badge" />
-                  <span className="font-display text-[10px] tracking-widest text-badge uppercase">Activity Hours</span>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-3">
-                  <div>
-                    <div className="font-display text-[9px] tracking-widest text-[var(--text-muted)] uppercase mb-2">April</div>
-                    <div className="space-y-1.5">
-                      <ActivityStat label="Total"  value={member.april_total_activity} />
-                      <ActivityStat label="Patrol" value={member.april_patrol_hours} />
-                      <ActivityStat label="Admin"  value={member.april_admin_hours} />
-                      <ActivityStat label="Logs"   value={member.april_patrol_logs} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="font-display text-[9px] tracking-widest text-[var(--text-muted)] uppercase mb-2">March</div>
-                    <div className="space-y-1.5">
-                      <ActivityStat label="Total"  value={member.march_total_activity} />
-                      <ActivityStat label="Patrol" value={member.march_patrol_hours} />
-                      <ActivityStat label="Admin"  value={member.march_admin_hours} />
-                      <ActivityStat label="Logs"   value={member.march_patrol_logs} />
-                    </div>
-                  </div>
-                  {(member.patrol_last_seen || member.admin_last_seen) && (
-                    <div>
-                      <div className="font-display text-[9px] tracking-widest text-[var(--text-muted)] uppercase mb-2">Last Seen</div>
-                      <div className="space-y-1.5">
-                        <ActivityStat label="Patrol" value={member.patrol_last_seen} />
-                        <ActivityStat label="Admin"  value={member.admin_last_seen} />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </>
-  );
+function buildTabs(roster: RosterMember[]) {
+  const divMap: Record<string, RosterMember[]> = {};
+  for (const m of roster) {
+    const key = m.division ?? "Unassigned";
+    if (!divMap[key]) divMap[key] = [];
+    divMap[key].push(m);
+  }
+  return divMap;
 }
 
 export function RosterClient({ roster }: { roster: RosterMember[] }) {
-  const [search, setSearch]               = useState("");
-  const [statusFilter, setStatusFilter]   = useState("All");
-  const [divisionFilter, setDivisionFilter] = useState("All");
+  const [search, setSearch]     = useState("");
+  const [activeTab, setActiveTab] = useState("__all__");
 
-  const divisions = useMemo(() => {
-    const set = new Set(roster.map(m => m.division).filter(Boolean) as string[]);
-    return ["All", ...Array.from(set).sort()];
-  }, [roster]);
+  const divTabs = useMemo(() => buildTabs(roster), [roster]);
 
-  const filtered = useMemo(() => {
+  const displayed = useMemo(() => {
+    const base = activeTab === "__all__" ? roster : (divTabs[activeTab] ?? []);
     const q = search.toLowerCase();
-    return roster
-      .filter(m => {
-        const matchSearch = !q ||
-          m.name.toLowerCase().includes(q) ||
-          m.rank.toLowerCase().includes(q) ||
-          (m.callsign ?? "").toLowerCase().includes(q) ||
-          (m.badge_number ?? "").toLowerCase().includes(q) ||
-          (m.division ?? "").toLowerCase().includes(q);
-        const matchStatus = statusFilter === "All" || m.status === statusFilter;
-        const matchDiv    = divisionFilter === "All" || m.division === divisionFilter;
-        return matchSearch && matchStatus && matchDiv;
-      })
-      .sort((a, b) => {
-        const ao = RANK_ORDER[a.rank] ?? 99;
-        const bo = RANK_ORDER[b.rank] ?? 99;
-        return ao !== bo ? ao - bo : a.name.localeCompare(b.name);
-      });
-  }, [roster, search, statusFilter, divisionFilter]);
+    return base.filter(m =>
+      !q ||
+      m.name.toLowerCase().includes(q) ||
+      m.rank.toLowerCase().includes(q) ||
+      (m.callsign ?? "").toLowerCase().includes(q) ||
+      (m.badge_number ?? "").toLowerCase().includes(q) ||
+      (m.division ?? "").toLowerCase().includes(q)
+    );
+  }, [roster, activeTab, divTabs, search]);
 
+  const grouped = useMemo(() => groupByTier(displayed), [displayed]);
   const activeCount = roster.filter(m => m.status === "Active").length;
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-4">
-      <div className="max-w-6xl mx-auto mb-10">
-        <div className="flex items-start justify-between flex-wrap gap-4">
+    <div className="min-h-screen flex">
+
+      {/* ── SIDEBAR ── */}
+      <aside className="w-52 flex-shrink-0 border-r border-[var(--border)] bg-[var(--bg-panel)] pt-6 pb-10 px-3 flex flex-col gap-5 sticky top-20 self-start h-[calc(100vh-5rem)] overflow-y-auto">
+
+        {/* Department */}
+        <div>
+          <p className="font-display text-[9px] tracking-[0.3em] text-[var(--text-muted)] uppercase px-2 mb-2">Department</p>
+          <TabBtn label="Full Roster" count={roster.length} active={activeTab === "__all__"} onClick={() => setActiveTab("__all__")} />
+        </div>
+
+        {/* Divisions */}
+        {Object.keys(divTabs).length > 0 && (
           <div>
-            <span className="font-display text-[10px] tracking-[0.5em] text-badge uppercase block mb-2">Department Portal</span>
-            <h1 className="font-display text-4xl font-bold text-primary-color tracking-tight flex items-center gap-3">
-              <Shield className="w-8 h-8 text-badge" strokeWidth={1.5} />
-              PERSONNEL ROSTER
+            <p className="font-display text-[9px] tracking-[0.3em] text-[var(--text-muted)] uppercase px-2 mb-2">Divisions</p>
+            {Object.entries(divTabs)
+              .sort((a, b) => b[1].length - a[1].length)
+              .map(([div, members]) => (
+                <TabBtn key={div} label={div} count={members.length}
+                  active={activeTab === div} onClick={() => setActiveTab(div)} />
+              ))}
+          </div>
+        )}
+      </aside>
+
+      {/* ── MAIN ── */}
+      <div className="flex-1 min-w-0 px-6 py-6">
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <div>
+            <h1 className="font-display text-2xl font-bold text-primary-color tracking-wide">
+              {activeTab === "__all__" ? "Full Roster" : activeTab}
             </h1>
-            <p className="text-[var(--text-secondary)] mt-2 text-sm">
-              Blaine County Sheriff&apos;s Office — click any row to view activity details
+            <p className="text-[var(--text-muted)] text-xs mt-0.5">
+              {displayed.length} member{displayed.length !== 1 ? "s" : ""}
+              {activeTab === "__all__" && <span className="ml-2 text-emerald-400">{activeCount} active</span>}
             </p>
           </div>
-          <div className="flex items-center gap-3 panel px-5 py-3">
-            <Users className="w-5 h-5 text-badge" />
-            <div>
-              <div className="font-display text-xl font-bold text-badge">{activeCount}</div>
-              <div className="text-[10px] text-[var(--text-muted)] tracking-widest uppercase font-display">Active Personnel</div>
-            </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+            <input
+              type="text"
+              placeholder="Search by name, callsign, rank, or division..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="search-input pl-9 pr-4 py-2 rounded-lg text-sm w-72"
+            />
           </div>
         </div>
-      </div>
 
-      {/* Filters */}
-      <div className="max-w-6xl mx-auto mb-6 flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-          <input type="text" placeholder="Search name, rank, callsign, badge..."
-            value={search} onChange={e => setSearch(e.target.value)}
-            className="search-input w-full pl-10 pr-4 py-2.5 rounded-lg text-sm" />
-        </div>
-        <div className="relative">
-          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-            className="search-input appearance-none pl-4 pr-8 py-2.5 rounded-lg text-xs font-display tracking-wider cursor-pointer">
-            {["All","Active","LOA","Inactive"].map(s => <option key={s} value={s}>{s === "All" ? "All Statuses" : s}</option>)}
-          </select>
-          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)] pointer-events-none" />
-        </div>
-        <div className="relative">
-          <select value={divisionFilter} onChange={e => setDivisionFilter(e.target.value)}
-            className="search-input appearance-none pl-4 pr-8 py-2.5 rounded-lg text-xs font-display tracking-wider cursor-pointer">
-            {divisions.map(d => <option key={d} value={d}>{d === "All" ? "All Divisions" : d}</option>)}
-          </select>
-          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)] pointer-events-none" />
-        </div>
-        <div className="flex items-center px-3 text-[var(--text-muted)] text-xs font-display tracking-wider">
-          <FileText className="w-3 h-3 mr-1" />{filtered.length} of {roster.length}
-        </div>
-      </div>
+        {/* Table */}
+        <div className="panel overflow-hidden relative">
+          {/* Watermark */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] z-0">
+            <div className="relative w-72 h-72">
+              <Image src="/BCSOBadge.png" alt="" fill className="object-contain" />
+            </div>
+          </div>
 
-      {/* Table */}
-      <div className="max-w-6xl mx-auto">
-        <div className="panel overflow-hidden">
-          <div className="hidden md:grid grid-cols-[2.5rem_1fr_1fr_1fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b border-[var(--border)] bg-[var(--bg-panel-alt)]">
-            {["","Name","Rank","Division","Callsign / Badge","Status",""].map((h, i) => (
-              <span key={i} className="font-display text-[10px] tracking-[0.2em] text-[var(--text-muted)] uppercase">{h}</span>
+          {/* Table header */}
+          <div className="relative z-10 grid roster-cols gap-3 px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-panel-alt)]">
+            {["ID","NAME","CALLSIGN","RANK","ASSIGNMENT","JOINED","PHONE","STATUS","ACTIVITY","PATROL HRS","ADMIN HRS","LOGS"].map(h => (
+              <span key={h} className="font-display text-[9px] tracking-widest text-[var(--text-muted)] uppercase">{h}</span>
             ))}
           </div>
 
-          {filtered.length === 0 ? (
-            <div className="py-20 text-center text-[var(--text-muted)] font-display text-sm tracking-wider">
-              No personnel match your filters.
-            </div>
-          ) : (
-            <div className="divide-y divide-[var(--border)]">
-              {filtered.map(member => <RosterRow key={member.id} member={member} />)}
-            </div>
-          )}
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-4 text-[10px] font-display tracking-wider text-[var(--text-muted)] uppercase">
-          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-400" />Active</span>
-          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400" />Leave of Absence</span>
-          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-400" />Inactive</span>
-          <span className="flex items-center gap-1.5 ml-4 text-badge"><Calendar className="w-3 h-3" />Click a row to view activity details</span>
+          {/* Grouped rows */}
+          <div className="relative z-10 divide-y divide-[var(--border)]">
+            {grouped.length === 0 ? (
+              <div className="py-16 text-center text-[var(--text-muted)] font-display text-sm tracking-wider">
+                No personnel match your search.
+              </div>
+            ) : (
+              grouped.map(({ tier, members }) => (
+                <div key={tier.label}>
+                  {/* Tier header */}
+                  <div className="px-4 py-1.5 bg-[var(--bg-panel-alt)]/60 border-b border-[var(--border)]">
+                    <span className={`font-display text-[9px] tracking-[0.3em] uppercase font-semibold ${tier.color}`}>
+                      {tier.label}
+                    </span>
+                  </div>
+                  {members.map(m => (
+                    <div key={m.id} className="grid roster-cols gap-3 px-4 py-2.5 hover:bg-[var(--badge)]/5 transition-colors text-sm border-b border-[var(--border)]/50 last:border-0">
+                      <span className="font-mono text-xs text-[var(--text-muted)]">{m.badge_number ?? "—"}</span>
+                      <span className="font-semibold text-[var(--text-primary)] truncate">{m.name}</span>
+                      <span className={`font-mono text-xs font-bold ${rankColor(m.rank)}`}>{m.callsign ?? "—"}</span>
+                      <span className={`font-display text-xs tracking-wide font-semibold ${rankColor(m.rank)}`}>{m.rank}</span>
+                      <span className="text-[var(--text-secondary)] text-xs truncate">{m.division ?? "—"}</span>
+                      <span className="text-[var(--text-muted)] text-xs">
+                        {m.joined_date ? new Date(m.joined_date).toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric" }) : "—"}
+                      </span>
+                      <span className="text-[var(--text-muted)] text-xs">{m.phone_number ?? "—"}</span>
+                      <StatusBadge status={m.status} />
+                      <span className="font-mono text-xs text-[var(--text-secondary)]">{m.april_total_activity ?? "—"}</span>
+                      <span className="font-mono text-xs text-[var(--text-secondary)]">{m.april_patrol_hours ?? "—"}</span>
+                      <span className="font-mono text-xs text-[var(--text-secondary)]">{m.april_admin_hours ?? "—"}</span>
+                      <span className="font-mono text-xs text-[var(--text-secondary)] text-center">{m.april_patrol_logs ?? "—"}</span>
+                    </div>
+                  ))}
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
+
+      <style>{`
+        .roster-cols {
+          grid-template-columns: 48px 140px 72px 140px 1fr 90px 110px 80px 80px 80px 80px 48px;
+        }
+      `}</style>
     </div>
+  );
+}
+
+function TabBtn({ label, count, active, onClick }: { label: string; count: number; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center justify-between px-3 py-1.5 rounded text-left mb-0.5 transition-all group ${
+        active
+          ? "bg-[var(--badge)]/15 text-badge border border-[var(--badge)]/30"
+          : "text-[var(--text-secondary)] hover:bg-[var(--bg-panel-alt)] hover:text-[var(--text-primary)]"
+      }`}
+    >
+      <span className="font-display text-[10px] tracking-wider uppercase truncate">{label}</span>
+      <span className={`font-mono text-[10px] ml-1 flex-shrink-0 ${active ? "text-badge" : "text-[var(--text-muted)]"}`}>{count}</span>
+    </button>
   );
 }

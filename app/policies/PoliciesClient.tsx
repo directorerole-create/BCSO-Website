@@ -83,7 +83,7 @@ export function PoliciesClient({ policies }: { policies: Policy[] }) {
 
   if (selected) {
     return (
-      <div className="min-h-screen pt-24 pb-16 px-4">
+      <div className="min-h-screen pt-8 pb-16 px-4">
         <div className="max-w-3xl mx-auto">
           <button
             onClick={() => setSelected(null)}
@@ -125,7 +125,7 @@ export function PoliciesClient({ policies }: { policies: Policy[] }) {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-4">
+    <div className="min-h-screen pt-8 pb-16 px-4">
       {/* Header */}
       <div className="max-w-6xl mx-auto mb-10">
         <span className="font-display text-[10px] tracking-[0.5em] text-badge uppercase block mb-2">Department Portal</span>
