@@ -3,7 +3,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Sun, Moon, Shield, Menu, X } from "lucide-react";
+import { Sun, Moon, Menu, X } from "lucide-react";
+import Image from "next/image";
 import { PoliceLightBar } from "./PoliceLightBar";
 
 const navLinks = [
@@ -51,10 +52,8 @@ export function Navbar() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative">
-                <div className="w-9 h-9 rounded-full border-2 border-[var(--badge)] flex items-center justify-center badge-glow group-hover:scale-110 transition-transform">
-                  <Shield className="w-5 h-5 text-badge" />
-                </div>
+              <div className="relative w-9 h-9 group-hover:scale-110 transition-transform">
+                <Image src="/BCSOBadge.png" alt="BCSO Badge" fill className="object-contain drop-shadow-[0_0_6px_rgba(201,162,39,0.5)]" />
               </div>
               <div className="flex flex-col leading-none">
                 <span className="font-display text-sm font-700 text-badge tracking-widest uppercase">

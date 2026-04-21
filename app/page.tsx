@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Shield, Users, BookOpen, Star, ChevronRight, Radio } from "lucide-react";
+import Image from "next/image";
+import { Users, BookOpen, Star, ChevronRight, Radio } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 async function getStats() {
@@ -68,11 +69,8 @@ export default async function HomePage() {
           {/* Badge emblem */}
           <div className="flex justify-center mb-8">
             <div className="relative">
-              <div
-                className="w-28 h-28 rounded-full border-4 border-[var(--badge)] flex items-center justify-center badge-glow"
-                style={{ background: "radial-gradient(circle at 40% 40%, rgba(201,162,39,0.15), rgba(201,162,39,0.03))" }}
-              >
-                <Shield className="w-14 h-14 text-badge" strokeWidth={1.5} />
+              <div className="w-36 h-36 relative badge-glow">
+                <Image src="/BCSOBadge.png" alt="BCSO Badge" fill className="object-contain drop-shadow-[0_0_20px_rgba(201,162,39,0.4)]" />
               </div>
               {/* Orbit ring */}
               <div className="absolute inset-[-12px] rounded-full border border-[var(--badge)]/20"
