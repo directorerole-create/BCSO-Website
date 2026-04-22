@@ -103,9 +103,32 @@ export default function ComplaintPage() {
     e.preventDefault();
     if (!validate()) return;
     setSubmitting(true);
-    await new Promise(r => setTimeout(r, 1400));
-    setSubmitting(false);
-    setSubmitted(true);
+    try {
+      const res = await fetch("/api/complaints", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reportNo: REPORT_NO,
+          complainantName: form.complainantName,
+          websiteId: form.websiteId,
+          profileLink: form.profileLink,
+          officerName: form.officerName,
+          officerWebsiteId: form.officerWebsiteId,
+          subdivision: form.subdivision,
+          dateOfIncident: form.dateOfIncident,
+          timeOfIncident: form.timeOfIncident,
+          description: form.description,
+          evidenceName: form.evidence?.name ?? null,
+        }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error ?? "Submission failed.");
+      setSubmitted(true);
+    } catch (err) {
+      setErrors({ description: err instanceof Error ? err.message : "Failed to submit. Try again." });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (submitted) {

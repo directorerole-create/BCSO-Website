@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import {
   Shield, Upload, CheckCircle, XCircle, AlertTriangle, Eye, EyeOff,
-  Loader, Users, UserPlus, Trash2, LogOut, ChevronDown, Lock, User,
+  Loader, Users, UserPlus, Trash2, LogOut, ChevronDown, Lock, User, FileText, ChevronRight,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -12,7 +12,13 @@ import {
 type AdminUser = { id: string; username: string; display_name: string; role: string; created_at: string };
 type Session   = { username: string; displayName: string; role: string; token: string };
 type RosterRow = Record<string, string | null>;
-type Tab       = "roster" | "admins";
+type Tab       = "roster" | "admins" | "complaints";
+type Complaint = {
+  id: string; report_no: string; complainant_name: string; website_id: string;
+  profile_link: string | null; officer_name: string; officer_website_id: string | null;
+  subdivision: string | null; date_of_incident: string; time_of_incident: string;
+  description: string; evidence_name: string | null; status: string; created_at: string;
+};
 
 // ─── CSV Import helpers (unchanged) ──────────────────────────────────────────
 
@@ -620,6 +626,175 @@ function RosterImportTab({ session }: { session: Session }) {
   );
 }
 
+// ─── Complaints Tab ──────────────────────────────────────────────────────────
+
+const STATUS_CFG: Record<string, { label: string; color: string }> = {
+  pending:       { label: "Pending Review",   color: "text-yellow-400 border-yellow-400/30 bg-yellow-400/10" },
+  investigating: { label: "Investigating",    color: "text-blue-400 border-blue-400/30 bg-blue-400/10" },
+  resolved:      { label: "Resolved",         color: "text-emerald-400 border-emerald-400/30 bg-emerald-400/10" },
+  dismissed:     { label: "Dismissed",        color: "text-[var(--text-muted)] border-[var(--border)] bg-[var(--bg-panel-alt)]" },
+};
+
+function ComplaintsTab({ session }: { session: Session }) {
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [expanded, setExpanded]     = useState<string | null>(null);
+  const [updating, setUpdating]     = useState<string | null>(null);
+
+  const headers = { "Authorization": `Bearer ${session.token}` };
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const res = await fetch("/api/complaints", { headers });
+    const data = await res.json();
+    setComplaints(data.complaints ?? []);
+    setLoading(false);
+  }, [session.token]);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function setStatus(id: string, status: string) {
+    setUpdating(id);
+    await fetch("/api/complaints", {
+      method: "PATCH",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status }),
+    });
+    setComplaints(cs => cs.map(c => c.id === id ? { ...c, status } : c));
+    setUpdating(null);
+  }
+
+  const counts = {
+    pending:       complaints.filter(c => c.status === "pending").length,
+    investigating: complaints.filter(c => c.status === "investigating").length,
+    resolved:      complaints.filter(c => c.status === "resolved").length,
+    dismissed:     complaints.filter(c => c.status === "dismissed").length,
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="font-display text-sm font-bold tracking-wide text-primary-color uppercase">Complaint Reports</h2>
+          <p className="text-[var(--text-muted)] text-xs mt-0.5">Citizen-submitted complaints against department members</p>
+        </div>
+        <button onClick={load} className="font-display text-[10px] tracking-widest uppercase px-3 py-1.5 rounded border border-[var(--border)] text-[var(--text-muted)] hover:border-badge hover:text-badge transition-colors">
+          Refresh
+        </button>
+      </div>
+
+      {/* Status summary */}
+      <div className="grid grid-cols-4 gap-3 mb-6">
+        {(["pending","investigating","resolved","dismissed"] as const).map(s => (
+          <div key={s} className="panel px-4 py-3 text-center">
+            <div className={`font-display text-lg font-black ${STATUS_CFG[s].color.split(" ")[0]}`}>{counts[s]}</div>
+            <div className="font-display text-[8px] tracking-widest text-[var(--text-muted)] uppercase mt-0.5">{STATUS_CFG[s].label}</div>
+          </div>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="panel py-14 flex items-center justify-center text-[var(--text-muted)]">
+          <Loader className="w-5 h-5 animate-spin mr-2" /> Loading complaints...
+        </div>
+      ) : complaints.length === 0 ? (
+        <div className="panel py-14 text-center text-[var(--text-muted)] font-display text-sm tracking-wider">
+          No complaints have been filed yet.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {complaints.map(c => {
+            const isOpen = expanded === c.id;
+            const cfg = STATUS_CFG[c.status] ?? STATUS_CFG.pending;
+            return (
+              <div key={c.id} className="panel overflow-hidden">
+                {/* Row header */}
+                <button
+                  onClick={() => setExpanded(isOpen ? null : c.id)}
+                  className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-[var(--badge)]/5 transition-colors"
+                >
+                  <ChevronRight className={`w-3.5 h-3.5 text-[var(--text-muted)] flex-shrink-0 transition-transform ${isOpen ? "rotate-90" : ""}`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-xs font-bold text-badge">{c.report_no}</span>
+                      <span className={`font-display text-[8px] tracking-widest uppercase px-2 py-0.5 rounded border ${cfg.color}`}>{cfg.label}</span>
+                    </div>
+                    <p className="text-[var(--text-secondary)] text-xs mt-0.5 truncate">
+                      Re: <span className="font-semibold text-[var(--text-primary)]">{c.officer_name}</span>
+                      {" — filed by "}{c.complainant_name}
+                    </p>
+                  </div>
+                  <span className="text-[10px] text-[var(--text-muted)] flex-shrink-0">
+                    {new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  </span>
+                </button>
+
+                {/* Expanded detail */}
+                <AnimatePresence>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-5 pb-5 pt-1 border-t border-[var(--border)] space-y-5">
+                        {/* Info grid */}
+                        <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 pt-3">
+                          {[
+                            ["Complainant",       c.complainant_name],
+                            ["Website ID",        c.website_id],
+                            ["Profile Link",      c.profile_link ?? "—"],
+                            ["Officer",           c.officer_name],
+                            ["Officer ID",        c.officer_website_id ?? "—"],
+                            ["Subdivision",       c.subdivision ?? "—"],
+                            ["Date of Incident",  c.date_of_incident],
+                            ["Time of Incident",  c.time_of_incident],
+                            ["Evidence",          c.evidence_name ?? "None attached"],
+                          ].map(([label, value]) => (
+                            <div key={label}>
+                              <span className="font-display text-[8px] tracking-[0.3em] text-[var(--text-muted)] uppercase block mb-0.5">{label}</span>
+                              <span className="text-[var(--text-primary)] text-xs">{value}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Description */}
+                        <div>
+                          <span className="font-display text-[8px] tracking-[0.3em] text-[var(--text-muted)] uppercase block mb-1.5">Description</span>
+                          <p className="text-[var(--text-secondary)] text-sm leading-relaxed bg-[var(--bg-panel-alt)] rounded p-4 border border-[var(--border)]">
+                            {c.description}
+                          </p>
+                        </div>
+
+                        {/* Status controls */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-display text-[8px] tracking-[0.3em] text-[var(--text-muted)] uppercase mr-1">Set status:</span>
+                          {(["pending","investigating","resolved","dismissed"] as const).map(s => (
+                            <button
+                              key={s}
+                              onClick={() => setStatus(c.id, s)}
+                              disabled={c.status === s || updating === c.id}
+                              className={`font-display text-[9px] tracking-wider uppercase px-3 py-1.5 rounded border transition-all disabled:opacity-40 ${
+                                c.status === s ? STATUS_CFG[s].color : "border-[var(--border)] text-[var(--text-muted)] hover:border-badge hover:text-badge"
+                              }`}
+                            >
+                              {updating === c.id && c.status !== s ? <Loader className="w-2.5 h-2.5 animate-spin inline" /> : STATUS_CFG[s].label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Admin Page ──────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -647,8 +822,9 @@ export default function AdminPage() {
   if (!session) return <LoginScreen onLogin={setSession} />;
 
   const TABS: { key: Tab; icon: typeof Shield; label: string }[] = [
-    { key: "roster", icon: Upload, label: "Roster Import" },
-    { key: "admins", icon: Users,  label: "Admin Profiles" },
+    { key: "roster",     icon: Upload,    label: "Roster Import"  },
+    { key: "admins",     icon: Users,     label: "Admin Profiles" },
+    { key: "complaints", icon: FileText,  label: "Complaints"     },
   ];
 
   return (
@@ -697,8 +873,9 @@ export default function AdminPage() {
         {/* Tab content */}
         <AnimatePresence mode="wait">
           <motion.div key={tab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-            {tab === "roster" && <RosterImportTab session={session} />}
-            {tab === "admins" && <AdminProfilesTab session={session} />}
+            {tab === "roster"     && <RosterImportTab session={session} />}
+            {tab === "admins"     && <AdminProfilesTab session={session} />}
+            {tab === "complaints" && <ComplaintsTab session={session} />}
           </motion.div>
         </AnimatePresence>
       </div>

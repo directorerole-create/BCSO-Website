@@ -1,123 +1,135 @@
 "use client";
 
-const BULBS = 6;
-const DURATION = "800ms";
+const DURATION = "900ms";
 
 export function PoliceLightBar({ className = "" }: { className?: string }) {
   return (
-    <div className={`lb-bar ${className}`} aria-hidden>
-      {/* Sequence 2: alternating B R B R B R */}
-      {[0, 1, 2, 3, 4, 5].map(i => {
-        const isBlue = i % 2 === 0;
-        return (
-          <div key={i} className={`lb-unit ${isBlue ? "lb-blue" : "lb-red"}`}>
-            <div className={`lb-inner ${isBlue ? "lb-inner-blue" : "lb-inner-red"}`} />
-            {Array.from({ length: BULBS }).map((_, j) => (
-              <span key={j} className={`lb-bulb ${isBlue ? "lb-bulb-blue" : "lb-bulb-red"}`} />
-            ))}
-          </div>
-        );
-      })}
+    <div className={`lb-wrap ${className}`} aria-hidden>
+      <div className="lb-bar">
+        {[0, 1, 2, 3, 4, 5].map(i => {
+          const isBlue = i % 2 === 0;
+          return (
+            <div key={i} className={`lb-unit ${isBlue ? "lb-unit-b" : "lb-unit-r"}`}>
+              {/* Colored fill layer */}
+              <div className={`lb-fill ${isBlue ? "lb-fill-b" : "lb-fill-r"}`} />
+              {/* Decorative bulb dots */}
+              {[0,1,2,3,4,5].map(j => (
+                <span key={j} className={`lb-dot ${isBlue ? "lb-dot-b" : "lb-dot-r"}`} />
+              ))}
+            </div>
+          );
+        })}
+      </div>
 
       <style>{`
+        .lb-wrap {
+          width: 100%;
+          overflow: hidden;
+          border-radius: 3px;
+        }
+
         .lb-bar {
           display: flex;
           align-items: center;
           gap: 2px;
           width: 100%;
           padding: 3px 2px;
-          border-radius: 3px;
-          background: linear-gradient(to bottom, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.2) 100%);
-          overflow: hidden;
+          background: linear-gradient(to bottom, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.25) 100%);
         }
 
         .lb-unit {
           position: relative;
           flex: 1;
-          height: 12px;
-          padding: 1px 3px;
-          background-color: #0a0a10;
-          border-top: 1px solid #070710;
-          border-bottom: 1px solid #1a1a28;
-          border-left: 1px solid #070710;
-          border-right: 1px solid #1a1a28;
+          height: 14px;
           border-radius: 2px;
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          animation-duration: ${DURATION};
-          animation-iteration-count: infinite;
-          overflow: visible;
+          justify-content: space-evenly;
+          padding: 0 3px;
+          background-color: #080810;
+          border: 1px solid #111118;
+          overflow: hidden;
         }
 
-        .lb-inner {
+        /* Animated colored fill */
+        .lb-fill {
           position: absolute;
           inset: 0;
           border-radius: 2px;
           opacity: 0;
-          border: 1px solid transparent;
           animation-duration: ${DURATION};
           animation-iteration-count: infinite;
+          animation-timing-function: linear;
         }
 
-        .lb-bulb {
+        .lb-fill-b {
+          background: #1a44ff;
+          box-shadow: 0 0 10px 4px #0028dd, 0 0 3px 1px #88aaff inset;
+          animation-name: lb-flash;
+        }
+
+        .lb-fill-r {
+          background: #ff1111;
+          box-shadow: 0 0 10px 4px #cc0000, 0 0 3px 1px #ff9999 inset;
+          animation-name: lb-flash;
+          animation-delay: calc(${DURATION} / 2);
+        }
+
+        /* Decorative LED dots */
+        .lb-dot {
           display: block;
           position: relative;
           z-index: 2;
+          width: 4px;
+          height: 4px;
           border-radius: 50%;
-          width: 5px;
-          height: 5px;
-          box-shadow: 0 0 2px #111;
-          background: linear-gradient(155deg,
-            rgba(255,255,255,0.22) 0%,
-            rgba(255,255,255,0.12) 25%,
-            rgba(255,255,255,0.16) 49%,
-            rgba(0,0,0,0) 78%,
-            rgba(0,0,0,0.75) 100%
-          );
+          flex-shrink: 0;
           animation-duration: ${DURATION};
           animation-iteration-count: infinite;
+          animation-timing-function: linear;
         }
 
-        /* ── BLUE (no delay) ── */
-        .lb-inner-blue  { animation-name: lb-inner-b; }
-        .lb-bulb-blue   { animation-name: lb-bulb-b; }
-
-        /* ── RED (half-cycle delay) ── */
-        .lb-inner-red   { animation-name: lb-inner-r; animation-delay: calc(${DURATION} / 2); }
-        .lb-bulb-red    { animation-name: lb-bulb-b;  animation-delay: calc(${DURATION} / 2); }
-
-        /* Bulb flash — brilliant white with halo */
-        @keyframes lb-bulb-b {
-          0%, 25%    { background: linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.65) 100%); box-shadow: 0 0 1px #000; }
-          28%, 50%   { background: #fff; box-shadow: 0 0 10px 5px rgba(255,255,255,0.9), 0 0 22px 10px rgba(255,255,255,0.45); }
-          52%, 55%   { background: linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.65) 100%); box-shadow: 0 0 1px #000; }
-          57%, 69%   { background: #fff; box-shadow: 0 0 10px 5px rgba(255,255,255,0.9), 0 0 22px 10px rgba(255,255,255,0.45); }
-          70%, 71%   { background: linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.65) 100%); box-shadow: 0 0 1px #000; }
-          72%, 75%   { background: #fff; box-shadow: 0 0 10px 5px rgba(255,255,255,0.9), 0 0 22px 10px rgba(255,255,255,0.45); }
-          77%, 100%  { background: linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.65) 100%); box-shadow: 0 0 1px #000; }
+        .lb-dot-b {
+          background: #2244aa;
+          animation-name: lb-dot-flash-b;
         }
 
-        /* Inner-light BLUE — vivid electric blue, strong bloom */
-        @keyframes lb-inner-b {
-          0%, 25%    { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          28%, 50%   { opacity: 1; border-color: #5599ff; background: #2255ff; box-shadow: 0 0 16px 8px #0033ee, 0 0 28px 12px rgba(0,50,230,0.5), 0 0 5px 2px #aaccff inset; }
-          52%, 55%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          57%, 69%   { opacity: 1; border-color: #5599ff; background: #2255ff; box-shadow: 0 0 16px 8px #0033ee, 0 0 28px 12px rgba(0,50,230,0.5), 0 0 5px 2px #aaccff inset; }
-          70%, 71%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          72%, 75%   { opacity: 1; border-color: #5599ff; background: #2255ff; box-shadow: 0 0 16px 8px #0033ee, 0 0 28px 12px rgba(0,50,230,0.5), 0 0 5px 2px #aaccff inset; }
-          77%, 100%  { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
+        .lb-dot-r {
+          background: #aa1111;
+          animation-name: lb-dot-flash-r;
+          animation-delay: calc(${DURATION} / 2);
         }
 
-        /* Inner-light RED — vivid pure red, strong bloom */
-        @keyframes lb-inner-r {
-          0%, 25%    { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          28%, 50%   { opacity: 1; border-color: #ff5555; background: #ff1111; box-shadow: 0 0 16px 8px #cc0000, 0 0 28px 12px rgba(200,0,0,0.5), 0 0 5px 2px #ffaaaa inset; }
-          52%, 55%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          57%, 69%   { opacity: 1; border-color: #ff5555; background: #ff1111; box-shadow: 0 0 16px 8px #cc0000, 0 0 28px 12px rgba(200,0,0,0.5), 0 0 5px 2px #ffaaaa inset; }
-          70%, 71%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          72%, 75%   { opacity: 1; border-color: #ff5555; background: #ff1111; box-shadow: 0 0 16px 8px #cc0000, 0 0 28px 12px rgba(200,0,0,0.5), 0 0 5px 2px #ffaaaa inset; }
-          77%, 100%  { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
+        /* Main flash — triple burst pattern */
+        @keyframes lb-flash {
+          0%,  24%  { opacity: 0; }
+          27%, 48%  { opacity: 1; }
+          51%, 54%  { opacity: 0; }
+          56%, 68%  { opacity: 1; }
+          70%, 71%  { opacity: 0; }
+          73%, 76%  { opacity: 1; }
+          78%, 100% { opacity: 0; }
+        }
+
+        /* Dots brighten to near-white when their unit fires */
+        @keyframes lb-dot-flash-b {
+          0%,  24%  { background: #1a2a66; box-shadow: none; }
+          27%, 48%  { background: #aaccff; box-shadow: 0 0 4px 2px rgba(100,160,255,0.8); }
+          51%, 54%  { background: #1a2a66; box-shadow: none; }
+          56%, 68%  { background: #aaccff; box-shadow: 0 0 4px 2px rgba(100,160,255,0.8); }
+          70%, 71%  { background: #1a2a66; box-shadow: none; }
+          73%, 76%  { background: #aaccff; box-shadow: 0 0 4px 2px rgba(100,160,255,0.8); }
+          78%, 100% { background: #1a2a66; box-shadow: none; }
+        }
+
+        @keyframes lb-dot-flash-r {
+          0%,  24%  { background: #661111; box-shadow: none; }
+          27%, 48%  { background: #ffaaaa; box-shadow: 0 0 4px 2px rgba(255,100,100,0.8); }
+          51%, 54%  { background: #661111; box-shadow: none; }
+          56%, 68%  { background: #ffaaaa; box-shadow: 0 0 4px 2px rgba(255,100,100,0.8); }
+          70%, 71%  { background: #661111; box-shadow: none; }
+          73%, 76%  { background: #ffaaaa; box-shadow: 0 0 4px 2px rgba(255,100,100,0.8); }
+          78%, 100% { background: #661111; box-shadow: none; }
         }
       `}</style>
     </div>
@@ -127,39 +139,30 @@ export function PoliceLightBar({ className = "" }: { className?: string }) {
 export function AmbientPoliceGlow() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {/* Red — top-left of content area (offset past 240px sidebar) */}
-      <div className="absolute ambient-red" style={{ top: -60, left: 200, width: 420, height: 420, borderRadius: "50%" }} />
-      {/* Blue — top-right */}
-      <div className="absolute ambient-blue" style={{ top: -60, right: -60, width: 420, height: 420, borderRadius: "50%" }} />
+      <div className="absolute ambient-red" style={{ top: -120, left: 160, width: 600, height: 600, borderRadius: "50%" }} />
+      <div className="absolute ambient-blue" style={{ top: -120, right: -80, width: 600, height: 600, borderRadius: "50%" }} />
       <style>{`
         .ambient-red {
-          background: radial-gradient(circle, rgba(255,10,10,0.32) 0%, rgba(255,30,30,0.14) 40%, transparent 70%);
-          animation: ambientR 0.8s linear infinite;
+          background: radial-gradient(circle, rgba(220,30,30,0.10) 0%, rgba(200,20,20,0.05) 45%, transparent 70%);
+          animation: ambientFlash 0.9s linear infinite;
           opacity: 0;
+          filter: blur(24px);
         }
         .ambient-blue {
-          background: radial-gradient(circle, rgba(30,60,255,0.32) 0%, rgba(30,80,255,0.14) 40%, transparent 70%);
-          animation: ambientB 0.8s linear infinite;
-          animation-delay: 400ms;
+          background: radial-gradient(circle, rgba(20,50,220,0.10) 0%, rgba(20,40,200,0.05) 45%, transparent 70%);
+          animation: ambientFlash 0.9s linear infinite;
+          animation-delay: 450ms;
           opacity: 0;
+          filter: blur(24px);
         }
-        @keyframes ambientR {
-          0%,25%   { opacity:0; }
-          28%,50%  { opacity:1; }
-          52%,55%  { opacity:0; }
-          57%,69%  { opacity:1; }
-          70%,71%  { opacity:0; }
-          72%,75%  { opacity:1; }
-          77%,100% { opacity:0; }
-        }
-        @keyframes ambientB {
-          0%,25%   { opacity:0; }
-          28%,50%  { opacity:1; }
-          52%,55%  { opacity:0; }
-          57%,69%  { opacity:1; }
-          70%,71%  { opacity:0; }
-          72%,75%  { opacity:1; }
-          77%,100% { opacity:0; }
+        @keyframes ambientFlash {
+          0%,  24%  { opacity: 0; }
+          27%, 48%  { opacity: 1; }
+          51%, 54%  { opacity: 0; }
+          56%, 68%  { opacity: 1; }
+          70%, 71%  { opacity: 0; }
+          73%, 76%  { opacity: 1; }
+          78%, 100% { opacity: 0; }
         }
       `}</style>
     </div>
