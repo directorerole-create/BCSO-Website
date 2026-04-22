@@ -118,9 +118,9 @@ export function RosterClient({ roster }: { roster: RosterMember[] }) {
         </div>
 
         {/* Search */}
-        <div className="relative flex-1">
+        <div className="relative w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-          <input type="text" placeholder="Search name, rank, callsign, badge..."
+          <input type="text" placeholder="Search name, rank, callsign..."
             value={search} onChange={e => setSearch(e.target.value)}
             className="search-input w-full pl-9 pr-4 py-2 rounded-lg text-sm" />
         </div>

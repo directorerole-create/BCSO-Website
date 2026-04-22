@@ -264,36 +264,56 @@ function debugSync() {
 }
 
 // ── TRIGGER SETUP ────────────────────────────────────────────────────────────
-// Run this function ONCE from the Apps Script editor to install an hourly trigger.
-// After that, sync runs automatically every hour without any manual action.
+// Run setupTriggers() ONCE from the Apps Script editor.
+// This installs two triggers:
+//   1. onEdit  — syncs immediately whenever any cell in the roster sheet changes
+//   2. Hourly  — catches any missed edits (paste, import, API changes)
 
-function setupTrigger() {
-  // Remove any existing triggers for syncRosterNow to avoid duplicates
+function onRosterEdit(e) {
+  // Only fire if the edit was on the Public Roster sheet
+  if (!e || !e.source) return;
+  var sheet = e.source.getActiveSheet();
+  if (sheet.getName() !== ROSTER_SHEET) return;
+  syncRosterNow();
+}
+
+function setupTriggers() {
+  // Remove all existing managed triggers to avoid duplicates
   var triggers = ScriptApp.getProjectTriggers();
   for (var i = 0; i < triggers.length; i++) {
-    if (triggers[i].getHandlerFunction() === "syncRosterNow") {
+    var fn = triggers[i].getHandlerFunction();
+    if (fn === "syncRosterNow" || fn === "onRosterEdit") {
       ScriptApp.deleteTrigger(triggers[i]);
     }
   }
 
-  // Install a new hourly trigger
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  // Trigger 1: sync immediately on any edit to the sheet
+  ScriptApp.newTrigger("onRosterEdit")
+    .forSpreadsheet(ss)
+    .onEdit()
+    .create();
+
+  // Trigger 2: hourly fallback in case edits are missed (bulk paste, API writes, etc.)
   ScriptApp.newTrigger("syncRosterNow")
     .timeBased()
     .everyHours(1)
     .create();
 
-  Logger.log("✓ Hourly sync trigger installed. Roster will push to the website every hour.");
+  Logger.log("✓ Triggers installed: onEdit (instant) + hourly fallback.");
 }
 
-// Run this to remove the automatic trigger (pause syncing)
-function removeTrigger() {
+// Run this to remove all triggers (pause syncing entirely)
+function removeTriggers() {
   var triggers = ScriptApp.getProjectTriggers();
+  var removed = 0;
   for (var i = 0; i < triggers.length; i++) {
-    if (triggers[i].getHandlerFunction() === "syncRosterNow") {
+    var fn = triggers[i].getHandlerFunction();
+    if (fn === "syncRosterNow" || fn === "onRosterEdit") {
       ScriptApp.deleteTrigger(triggers[i]);
-      Logger.log("✓ Sync trigger removed.");
-      return;
+      removed++;
     }
   }
-  Logger.log("No sync trigger found.");
+  Logger.log("✓ Removed " + removed + " trigger(s).");
 }
