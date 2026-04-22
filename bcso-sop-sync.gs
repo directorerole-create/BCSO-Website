@@ -1,39 +1,23 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// BCSO SOP Sync — Google Apps Script
-// Reads a Google Doc formatted as an SOP and pushes it to the website API.
+// BCSO SOP Sync — Google Apps Script (Document Tabs edition)
+// Each tab in the Google Doc = one SOP section.
+// Heading 2 inside a tab = subsection. Normal text = content.
 //
-// HOW TO USE:
-//   1. In your Google Doc: Extensions → Apps Script
-//   2. Create a new script file named "bcso-sop-sync"
-//   3. Paste this entire file into it
-//   4. Fill in SOP_DOC_ID and SYNC_SECRET below
-//   5. Run setupSopTriggers() once to enable automatic syncing
-//   6. Or run syncSopNow() manually anytime
-//
-// ── HOW TO FORMAT YOUR GOOGLE DOC ────────────────────────────────────────────
-//
-//   Use paragraph styles (Format → Paragraph styles) like this:
-//
-//   [Heading 1]  I. General Provisions
+// HOW TO FORMAT YOUR DOC TABS:
+//   Tab title:   "I. General Provisions"   (number + period + title)
 //   [Heading 2]  1.1 Purpose & Scope
-//   [Normal]     Your content text goes here. This can span
-//                multiple lines and will be combined.
-//   [Normal]     A blank line in the doc creates a paragraph break.
+//   [Normal]     Content text...
 //   [Heading 2]  1.2 Authority of the Sheriff
 //   [Normal]     More content...
-//   [Heading 1]  II. Administration & Organization
-//   [Heading 2]  2.1 Introduction
-//   ...
 //
 //   Bold text within normal paragraphs is preserved as **bold**.
 //   Bullet list items are preserved as "- item".
-//   Heading 3 paragraphs become bold section labels (**label**).
-//
+//   Heading 3 lines become bold labels (**label**).
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── CONFIG ───────────────────────────────────────────────────────────────────
 
-const SOP_DOC_ID     = "YOUR_GOOGLE_DOC_ID_HERE";   // ← paste your Doc ID (from the URL)
+const SOP_DOC_ID     = "1uqbbzk089ljISPFS5FK78JoPHuEJtVBu-U1SbQYMygQ";   // ← paste your Doc ID (from the URL)
 const SOP_WEBHOOK_URL = "https://bcso-website-ivory.vercel.app/api/sync-sop";
 const SOP_SECRET      = "e60cd5bde8ee8866b717c068987a148f"; // ← must match SYNC_SECRET in .env
 
@@ -41,84 +25,19 @@ const SOP_SECRET      = "e60cd5bde8ee8866b717c068987a148f"; // ← must match SY
 
 function syncSopNow() {
   var doc  = DocumentApp.openById(SOP_DOC_ID);
-  var body = doc.getBody();
-  var numChildren = body.getNumChildren();
+  var tabs = doc.getTabs();
 
-  var sections = [];
-  var currentSection    = null;
-  var currentSubsection = null;
-  var sectionOrder    = 0;
-  var subsectionOrder = 0;
+  var sections     = [];
+  var sectionOrder = 0;
 
-  for (var i = 0; i < numChildren; i++) {
-    var element = body.getChild(i);
-    var elType  = element.getType();
-
-    if (elType === DocumentApp.ElementType.PARAGRAPH) {
-      var para    = element.asParagraph();
-      var heading = para.getHeading();
-      var rawText = para.getText().trim();
-
-      if (!rawText) continue;
-
-      if (heading === DocumentApp.ParagraphHeading.HEADING1) {
-        // "I. General Provisions"  or  "I — General Provisions"
-        var m = rawText.match(/^([IVXLCDM\d]+)[.\s—\-]+(.+)$/i);
-        currentSection = {
-          number:        m ? m[1].trim() : rawText,
-          title:         m ? m[2].trim() : rawText,
-          display_order: ++sectionOrder,
-          subsections:   [],
-        };
-        sections.push(currentSection);
-        currentSubsection = null;
-        subsectionOrder   = 0;
-
-      } else if (heading === DocumentApp.ParagraphHeading.HEADING2) {
-        // "1.1 Purpose & Scope"
-        var m = rawText.match(/^([\d]+\.[\d]+)[.\s]+(.+)$/);
-        if (currentSection) {
-          currentSubsection = {
-            number:        m ? m[1].trim() : rawText,
-            title:         m ? m[2].trim() : rawText,
-            display_order: ++subsectionOrder,
-            content:       "",
-          };
-          currentSection.subsections.push(currentSubsection);
-        }
-
-      } else if (heading === DocumentApp.ParagraphHeading.HEADING3) {
-        // Treated as a bold label line
-        if (currentSubsection) {
-          if (currentSubsection.content) currentSubsection.content += "\n";
-          currentSubsection.content += "**" + rawText + "**";
-        }
-
-      } else {
-        // Normal text — parse inline bold
-        if (currentSubsection) {
-          var parsed = parseParagraphText(para);
-          if (parsed) {
-            if (currentSubsection.content) currentSubsection.content += "\n";
-            currentSubsection.content += parsed;
-          }
-        }
-      }
-
-    } else if (elType === DocumentApp.ElementType.LIST_ITEM) {
-      var item     = element.asListItem();
-      var itemText = item.getText().trim();
-      if (currentSubsection && itemText) {
-        if (currentSubsection.content) currentSubsection.content += "\n";
-        currentSubsection.content += "- " + itemText;
-      }
-    }
+  for (var t = 0; t < tabs.length; t++) {
+    var processed = processTab(tabs[t], ++sectionOrder);
+    if (processed) sections.push(processed);
   }
 
-  Logger.log("Parsed " + sections.length + " sections.");
+  Logger.log("Parsed " + sections.length + " sections from " + tabs.length + " tabs.");
 
   var payload = JSON.stringify({ secret: SOP_SECRET, sections: sections });
-
   var options = {
     method:      "post",
     contentType: "application/json",
@@ -137,9 +56,117 @@ function syncSopNow() {
   }
 }
 
+// Processes a single tab into a section object.
+function processTab(tab, order) {
+  var tabTitle = tab.getTitle().trim();
+  var docTab   = tab.asDocumentTab();
+  var body     = docTab.getBody();
+  var numChildren = body.getNumChildren();
+
+  // Parse tab title formats:
+  //   "BCSO.001 - Vehicle Pursuit Policy"  → number: "BCSO.001", title: "Vehicle Pursuit Policy"
+  //   "I. General Provisions"              → number: "I",         title: "General Provisions"
+  //   anything else                        → number: order,       title: full tab title
+  var m = tabTitle.match(/^(BCSO\.\d+)\s*[-–—]\s*(.+)$/i)
+       || tabTitle.match(/^(?:Section\s+)?([IVXLCDM\d]+)[.\s—\-]+(.+)$/i);
+
+  var section = {
+    number:        m ? m[1].trim() : String(order),
+    title:         m ? m[2].trim() : tabTitle,
+    display_order: order,
+    subsections:   [],
+  };
+
+  var currentSubsection = null;
+  var subsectionOrder   = 0;
+  var hasH2 = false;
+
+  for (var i = 0; i < numChildren; i++) {
+    var element = body.getChild(i);
+    var elType  = element.getType();
+
+    if (elType === DocumentApp.ElementType.PARAGRAPH) {
+      var para    = element.asParagraph();
+      var heading = para.getHeading();
+      var rawText = para.getText().trim();
+
+      if (!rawText) continue;
+
+      if (heading === DocumentApp.ParagraphHeading.HEADING1) {
+        // Skip — tab title is already the section title
+
+      } else if (heading === DocumentApp.ParagraphHeading.HEADING2) {
+        hasH2 = true;
+        // H2 is just a plain title like "Purpose" — no numeric prefix required
+        var m2 = rawText.match(/^([\d]+\.[\d]+)[.\s]+(.+)$/);
+        currentSubsection = {
+          number:        m2 ? m2[1].trim() : "",
+          title:         m2 ? m2[2].trim() : rawText,
+          display_order: ++subsectionOrder,
+          content:       "",
+        };
+        section.subsections.push(currentSubsection);
+
+      } else if (heading === DocumentApp.ParagraphHeading.HEADING3) {
+        if (currentSubsection) {
+          if (currentSubsection.content) currentSubsection.content += "\n";
+          currentSubsection.content += "**" + rawText + "**";
+        }
+
+      } else {
+        // Normal text — only add once we have a subsection to attach to
+        if (currentSubsection) {
+          var parsed = parseParagraphText(para);
+          if (parsed) {
+            if (currentSubsection.content) currentSubsection.content += "\n";
+            currentSubsection.content += parsed;
+          }
+        }
+      }
+
+    } else if (elType === DocumentApp.ElementType.LIST_ITEM) {
+      var itemText = element.asListItem().getText().trim();
+      if (currentSubsection && itemText) {
+        if (currentSubsection.content) currentSubsection.content += "\n";
+        currentSubsection.content += "- " + itemText;
+      }
+    }
+  }
+
+  // If no H2 headings were found, collect all text as a single "Overview" subsection
+  if (!hasH2) {
+    var allText = "";
+    for (var i = 0; i < numChildren; i++) {
+      var el = body.getChild(i);
+      if (el.getType() === DocumentApp.ElementType.PARAGRAPH) {
+        var p  = el.asParagraph();
+        if (p.getHeading() !== DocumentApp.ParagraphHeading.NORMAL_TEXT &&
+            p.getHeading() !== DocumentApp.ParagraphHeading.HEADING1) continue;
+        var parsed = parseParagraphText(p);
+        if (parsed) {
+          if (allText) allText += "\n";
+          allText += parsed;
+        }
+      } else if (el.getType() === DocumentApp.ElementType.LIST_ITEM) {
+        var it = el.asListItem().getText().trim();
+        if (it) {
+          if (allText) allText += "\n";
+          allText += "- " + it;
+        }
+      }
+    }
+    if (allText) {
+      section.subsections.push({
+        number: "", title: "Overview", display_order: 1, content: allText,
+      });
+    }
+  }
+
+  return section;
+}
+
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 
-// Parses a paragraph's text, wrapping bold runs in **...**
 function parseParagraphText(para) {
   var numChildren = para.getNumChildren();
   var result = "";
@@ -148,23 +175,19 @@ function parseParagraphText(para) {
     var child = para.getChild(i);
     if (child.getType() !== DocumentApp.ElementType.TEXT) continue;
 
-    var textEl  = child.asText();
-    var raw     = textEl.getText();
+    var textEl = child.asText();
+    var raw    = textEl.getText();
     if (!raw) continue;
 
-    var inBold  = false;
-    var chunk   = "";
+    var inBold = false;
+    var chunk  = "";
 
     for (var j = 0; j < raw.length; j++) {
       var bold = textEl.isBold(j);
       if (bold && !inBold) {
-        result += chunk;
-        chunk  = "**";
-        inBold = true;
+        result += chunk; chunk = "**"; inBold = true;
       } else if (!bold && inBold) {
-        result += chunk + "**";
-        chunk  = "";
-        inBold = false;
+        result += chunk + "**"; chunk = ""; inBold = false;
       }
       chunk += raw[j];
     }
@@ -178,34 +201,45 @@ function parseParagraphText(para) {
 
 function debugSop() {
   var doc  = DocumentApp.openById(SOP_DOC_ID);
-  var body = doc.getBody();
-  var numChildren = body.getNumChildren();
+  var tabs = doc.getTabs();
 
-  Logger.log("=== DOC STRUCTURE (first 40 elements) ===");
-  for (var i = 0; i < Math.min(numChildren, 40); i++) {
-    var el = body.getChild(i);
-    if (el.getType() === DocumentApp.ElementType.PARAGRAPH) {
-      var para    = el.asParagraph();
-      var heading = para.getHeading();
-      var text    = para.getText().trim();
-      if (!text) continue;
-      var label = heading === DocumentApp.ParagraphHeading.HEADING1 ? "H1"
-                : heading === DocumentApp.ParagraphHeading.HEADING2 ? "H2"
-                : heading === DocumentApp.ParagraphHeading.HEADING3 ? "H3"
-                : "  ";
-      Logger.log("[" + label + "] " + text.slice(0, 80));
-    } else if (el.getType() === DocumentApp.ElementType.LIST_ITEM) {
-      Logger.log("[LI] " + el.asListItem().getText().trim().slice(0, 80));
+  Logger.log("=== TABS FOUND: " + tabs.length + " ===");
+  for (var t = 0; t < tabs.length; t++) {
+    var tab   = tabs[t];
+    var title = tab.getTitle();
+    var body  = tab.asDocumentTab().getBody();
+    var n     = body.getNumChildren();
+
+    Logger.log("Tab " + (t+1) + ": \"" + title + "\" (" + n + " elements)");
+
+    var shown = 0;
+    for (var i = 0; i < n && shown < 6; i++) {
+      var el = body.getChild(i);
+      if (el.getType() === DocumentApp.ElementType.PARAGRAPH) {
+        var para = el.asParagraph();
+        var text = para.getText().trim();
+        if (!text) continue;
+        var h = para.getHeading();
+        var label = h === DocumentApp.ParagraphHeading.HEADING1 ? "H1"
+                  : h === DocumentApp.ParagraphHeading.HEADING2 ? "H2"
+                  : h === DocumentApp.ParagraphHeading.HEADING3 ? "H3" : "  ";
+        Logger.log("  [" + label + "] " + text.slice(0, 80));
+        shown++;
+      }
+    }
+
+    var childTabs = tab.getChildTabs();
+    if (childTabs.length > 0) {
+      Logger.log("  └─ " + childTabs.length + " child tab(s):");
+      for (var c = 0; c < childTabs.length; c++) {
+        Logger.log("     Tab: \"" + childTabs[c].getTitle() + "\"");
+      }
     }
   }
   Logger.log("(Run syncSopNow to push to website)");
 }
 
 // ── TRIGGER SETUP ────────────────────────────────────────────────────────────
-// Run setupSopTriggers() ONCE from the Apps Script editor.
-// Installs:
-//   1. onChange — syncs immediately whenever the Doc is edited
-//   2. Hourly   — fallback for missed changes
 
 function onSopChange() {
   syncSopNow();
@@ -222,13 +256,11 @@ function setupSopTriggers() {
 
   var doc = DocumentApp.openById(SOP_DOC_ID);
 
-  // Trigger 1: sync on any document change
   ScriptApp.newTrigger("onSopChange")
     .forDocument(doc)
     .onChange()
     .create();
 
-  // Trigger 2: hourly fallback
   ScriptApp.newTrigger("syncSopNow")
     .timeBased()
     .everyHours(1)

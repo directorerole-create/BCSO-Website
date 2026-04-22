@@ -33,7 +33,7 @@ function SubsectionView({ sub }: { sub: SopSubsection }) {
   return (
     <div id={sub.id} className="mb-8">
       <div className="flex items-center gap-2 mb-3">
-        <span className="font-mono text-sm text-badge/70 font-bold">{sub.number}</span>
+        {sub.number && <span className="font-mono text-sm text-badge/70 font-bold">{sub.number}</span>}
         <h3 className="font-display text-lg font-semibold text-primary-color tracking-wide">{sub.title}</h3>
       </div>
       <div className="pl-4 border-l border-[var(--border)]">
@@ -115,10 +115,8 @@ export function PoliciesClient({ sections }: Props) {
                 onClick={() => { if (isActive) toggleSection(section.id); else selectSection(section.id); }}
                 className={`w-full flex items-start gap-2.5 px-2 py-2 text-left rounded transition-all group ${isActive ? "bg-badge/8" : "hover:bg-[var(--border)]/20"}`}
               >
-                <span className={`font-mono text-xs font-bold mt-0.5 w-5 flex-shrink-0 ${isActive ? "text-badge" : "text-[var(--text-muted)]"}`}>
-                  {section.number}
-                </span>
                 <span className={`font-display text-sm tracking-wide flex-1 leading-snug ${isActive ? "text-badge font-semibold" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"}`}>
+                  {section.number && <span className={`font-mono text-[9px] mr-1.5 ${isActive ? "text-badge/70" : "text-[var(--text-muted)]"}`}>{section.number}</span>}
                   {section.title}
                 </span>
                 <ChevronDown className={`w-3 h-3 flex-shrink-0 mt-0.5 transition-transform duration-200 ${isActive ? "text-badge/70" : "text-[var(--text-muted)]/50"} ${isExpanded ? "rotate-180" : ""}`} />
@@ -248,7 +246,7 @@ export function PoliciesClient({ sections }: Props) {
               <div className="p-4 sm:p-8 max-w-3xl mx-auto">
                 <div className="mb-8 pb-6 border-b border-[var(--border)]">
                   <div className="flex items-center gap-3 mb-3 flex-wrap">
-                    <span className="font-mono text-xs text-badge/60 font-bold tracking-wider">SECTION {activeSection.number}</span>
+                    {activeSection.number && <span className="font-mono text-xs text-badge/60 font-bold tracking-wider">{activeSection.number}</span>}
                     <div className="h-[1px] flex-1 bg-[var(--border)] hidden sm:block" />
                     <span className="text-[10px] font-display text-[var(--text-muted)] tracking-wider">
                       {activeSection.subsections.length} subsection{activeSection.subsections.length !== 1 ? "s" : ""}
