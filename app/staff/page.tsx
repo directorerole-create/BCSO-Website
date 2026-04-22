@@ -52,23 +52,24 @@ function StaffCard({ member, index }: { member: StaticStaffMember; index: number
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-      className="relative rounded-lg overflow-hidden border flex"
+      className="relative rounded-lg overflow-hidden border flex flex-col sm:flex-row"
       style={{ borderColor: cfg.border, background: "var(--bg-panel)" }}
     >
-      {/* Left accent bar */}
-      <div className="w-1 flex-shrink-0" style={{ background: `linear-gradient(to bottom, ${cfg.color}, ${cfg.color}88)` }} />
+      {/* Top accent bar — mobile */}
+      <div className="sm:hidden h-1 w-full" style={{ background: `linear-gradient(to right, ${cfg.color}, ${cfg.color}44)` }} />
+      {/* Left accent bar — desktop */}
+      <div className="hidden sm:block w-1 flex-shrink-0" style={{ background: `linear-gradient(to bottom, ${cfg.color}, ${cfg.color}88)` }} />
 
       {/* Avatar column */}
-      <div className="flex-shrink-0 flex flex-col items-center justify-center px-7 py-6 border-r"
+      <div className="flex-shrink-0 flex sm:flex-col items-center gap-4 sm:gap-0 sm:justify-center px-5 sm:px-7 py-4 sm:py-6 border-b sm:border-b-0 sm:border-r"
         style={{ borderColor: cfg.border, background: cfg.bg }}>
-        {/* Chain-of-command number */}
-        <div className="font-mono text-[10px] tracking-widest mb-3" style={{ color: `${cfg.color}80` }}>
+        <div className="font-mono text-[10px] tracking-widest hidden sm:block sm:mb-3" style={{ color: `${cfg.color}80` }}>
           #{cfg.order.toString().padStart(2, "0")}
         </div>
         {/* Avatar */}
-        <div className="w-20 h-20 rounded-full flex items-center justify-center border-2 mb-4"
+        <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full flex items-center justify-center border-2 sm:mb-4 flex-shrink-0"
           style={{ borderColor: cfg.border, background: `rgba(0,0,0,0.4)` }}>
-          <span className="font-display text-2xl font-black" style={{ color: cfg.color }}>
+          <span className="font-display text-lg sm:text-2xl font-black" style={{ color: cfg.color }}>
             {getInitials(member.name)}
           </span>
         </div>
@@ -79,7 +80,7 @@ function StaffCard({ member, index }: { member: StaticStaffMember; index: number
       </div>
 
       {/* Details column */}
-      <div className="flex-1 px-6 py-5 flex flex-col justify-center">
+      <div className="flex-1 px-4 sm:px-6 py-4 sm:py-5 flex flex-col justify-center">
         {/* Tier label */}
         <span className="font-display text-[8px] tracking-[0.4em] uppercase mb-1" style={{ color: `${cfg.color}90` }}>
           {cfg.tier}
