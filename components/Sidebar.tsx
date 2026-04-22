@@ -4,8 +4,8 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { BookOpen, Users, Star, Home, Sun, Moon, Shield, Menu, X, Radio, AlertTriangle } from "lucide-react";
-import { PoliceLightBar, AmbientPoliceGlow } from "./PoliceLightBar";
+import { BookOpen, Users, Star, Home, Sun, Moon, Shield, Menu, X, AlertTriangle } from "lucide-react";
+import { AmbientPoliceGlow } from "./PoliceLightBar";
 
 const NAV = [
   {
@@ -31,7 +31,13 @@ export function Sidebar() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted]   = useState(false);
   const [open, setOpen]         = useState(false);
-  const [lightsOn, setLightsOn] = useState(true);
+  const [glowActive, setGlowActive] = useState(false);
+
+  useEffect(() => {
+    setGlowActive(true);
+    const timer = setTimeout(() => setGlowActive(false), 10000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -67,71 +73,7 @@ export function Sidebar() {
           </div>
         </div>
 
-        {/* Light bar + toggle */}
-        <div className="mt-4 mb-0">
-          {lightsOn && <PoliceLightBar className="w-full justify-between" />}
-          {!lightsOn && (
-            <div className="lb-bar-off w-full h-[17px] rounded flex items-center gap-[2px] px-[2px]"
-              style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.04)" }}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex-1 h-[11px] rounded-[2px]"
-                  style={{ background: "#0d0d14", border: "1px solid #111" }} />
-              ))}
-            </div>
-          )}
-
-          {/* Car-console toggle switch */}
-          <div className="flex items-center justify-between mt-2">
-            <span className="font-display text-[7px] tracking-[0.35em] text-[var(--text-muted)] uppercase">Lights</span>
-            <button
-              onClick={() => setLightsOn(l => !l)}
-              aria-label="Toggle police lights"
-              className="relative flex items-center"
-              style={{ width: 36, height: 18 }}
-            >
-              {/* Track */}
-              <div
-                className="absolute inset-0 rounded-sm transition-colors duration-300"
-                style={{
-                  background: lightsOn
-                    ? "linear-gradient(90deg, #1a44cc, #cc1111)"
-                    : "rgba(255,255,255,0.06)",
-                  border: lightsOn ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(255,255,255,0.08)",
-                  boxShadow: lightsOn ? "0 0 8px rgba(100,100,255,0.3), inset 0 1px 0 rgba(255,255,255,0.1)" : "none",
-                }}
-              />
-              {/* Ridged thumb */}
-              <div
-                className="absolute top-[2px] w-[14px] h-[14px] rounded-sm transition-all duration-300 flex items-center justify-center gap-[2px]"
-                style={{
-                  left: lightsOn ? "calc(100% - 16px)" : "2px",
-                  background: lightsOn
-                    ? "linear-gradient(180deg, #f0f0f0 0%, #bbb 100%)"
-                    : "linear-gradient(180deg, #555 0%, #333 100%)",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.3)",
-                }}
-              >
-                {/* Ridges */}
-                {[0,1,2].map(r => (
-                  <div key={r} className="h-[8px] w-[1px] rounded-full"
-                    style={{ background: lightsOn ? "rgba(0,0,0,0.25)" : "rgba(255,255,255,0.15)" }} />
-                ))}
-              </div>
-            </button>
-          </div>
-        </div>
-
-        {/* Status bar */}
-        <div className="flex items-center justify-between mt-2.5 mb-4">
-          <div className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
-            <span className="font-display text-[8px] tracking-[0.3em] text-emerald-400 uppercase">Portal Online</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Radio className="w-2.5 h-2.5 text-[var(--text-muted)]" strokeWidth={1.5} />
-            <span className="font-mono text-[8px] text-[var(--text-muted)] tracking-wider">BCSO-7B</span>
-          </div>
-        </div>
+        <div className="mb-4" />
       </div>
 
       {/* Divider */}
@@ -219,8 +161,8 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Ambient glow — tied to lights toggle, offset past the sidebar */}
-      {lightsOn && <AmbientPoliceGlow />}
+      {/* Ambient glow — plays for 10s on load then stops */}
+      {glowActive && <AmbientPoliceGlow />}
 
       {/* Mobile toggle */}
       <button
