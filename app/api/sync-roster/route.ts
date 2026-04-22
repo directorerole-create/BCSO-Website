@@ -24,7 +24,10 @@ export async function POST(req: NextRequest) {
       .from("roster")
       .delete()
       .neq("id", "00000000-0000-0000-0000-000000000000");
-    if (deleteError) throw deleteError;
+    if (deleteError) {
+      console.error("Delete error:", JSON.stringify(deleteError));
+      return NextResponse.json({ error: deleteError.message ?? JSON.stringify(deleteError) }, { status: 500 });
+    }
 
     const { error: insertError } = await supabase.from("roster").insert(
       rows.map((r) => ({
@@ -34,7 +37,6 @@ export async function POST(req: NextRequest) {
         callsign:             r.callsign             ?? null,
         division:             r.division             ?? null,
         status:               ["Active","Inactive","LOA"].includes(r.status ?? "") ? r.status : "Active",
-        avatar_url:           r.avatar_url           ?? null,
         joined_date:          r.joined_date          ?? null,
         phone_number:         r.phone_number         ?? null,
         april_total_activity: r.april_total_activity ?? null,
@@ -47,14 +49,16 @@ export async function POST(req: NextRequest) {
         march_patrol_logs:    r.march_patrol_logs    ?? null,
         patrol_last_seen:     r.patrol_last_seen     ?? null,
         admin_last_seen:      r.admin_last_seen      ?? null,
-        updated_at:           new Date().toISOString(),
       }))
     );
-    if (insertError) throw insertError;
+    if (insertError) {
+      console.error("Insert error:", JSON.stringify(insertError));
+      return NextResponse.json({ error: insertError.message ?? JSON.stringify(insertError) }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true, count: rows.length });
   } catch (err) {
     console.error("sync-roster error:", err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : JSON.stringify(err) }, { status: 500 });
   }
 }
