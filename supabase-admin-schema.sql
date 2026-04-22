@@ -35,6 +35,6 @@ VALUES (
   'Administrator',
   'superadmin',
   -- SHA-256 of "changeme"
-  '62cdb7020ff920e5aa642c3d4066950dd1f01f4d25ef1b8ffc6d4e7a7f05218'
+  '057ba03d6c44104863dc7361fe4578965d1887360f90a0895882e58a6248fc86'
 )
 ON CONFLICT (username) DO NOTHING;
