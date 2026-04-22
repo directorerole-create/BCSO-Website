@@ -5,7 +5,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { BookOpen, Users, Star, Home, Sun, Moon, Shield, Menu, X, Radio, AlertTriangle } from "lucide-react";
-import { PoliceLightBar } from "./PoliceLightBar";
+import { PoliceLightBar, AmbientPoliceGlow } from "./PoliceLightBar";
 
 const NAV = [
   {
@@ -219,6 +219,9 @@ export function Sidebar() {
 
   return (
     <>
+      {/* Ambient glow — tied to lights toggle, offset past the sidebar */}
+      {lightsOn && <AmbientPoliceGlow />}
+
       {/* Mobile toggle */}
       <button
         className="fixed top-4 left-4 z-50 md:hidden w-9 h-9 rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] flex items-center justify-center text-[var(--text-secondary)]"

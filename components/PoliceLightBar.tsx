@@ -33,20 +33,20 @@ export function PoliceLightBar({ className = "" }: { className?: string }) {
         .lb-unit {
           position: relative;
           flex: 1;
-          height: 11px;
+          height: 12px;
           padding: 1px 3px;
-          background-color: #111118;
-          border-top: 1px solid #0a0a12;
-          border-bottom: 1px solid #222;
-          border-left: 1px solid #0a0a12;
-          border-right: 1px solid #222;
+          background-color: #0a0a10;
+          border-top: 1px solid #070710;
+          border-bottom: 1px solid #1a1a28;
+          border-left: 1px solid #070710;
+          border-right: 1px solid #1a1a28;
           border-radius: 2px;
           display: flex;
           align-items: center;
           justify-content: space-between;
           animation-duration: ${DURATION};
           animation-iteration-count: infinite;
-          overflow: hidden;
+          overflow: visible;
         }
 
         .lb-inner {
@@ -86,36 +86,36 @@ export function PoliceLightBar({ className = "" }: { className?: string }) {
         .lb-inner-red   { animation-name: lb-inner-r; animation-delay: calc(${DURATION} / 2); }
         .lb-bulb-red    { animation-name: lb-bulb-b;  animation-delay: calc(${DURATION} / 2); }
 
-        /* Bulb flash (shared) — white light on/off */
+        /* Bulb flash — brilliant white with wide halo */
         @keyframes lb-bulb-b {
-          0%, 25%    { background: linear-gradient(155deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.12) 25%, rgba(255,255,255,0.16) 49%, rgba(0,0,0,0) 78%, rgba(0,0,0,0.75) 100%); box-shadow: 0 0 2px #111; }
-          28%, 50%   { background: #fff; box-shadow: 0 0 7px 3px #fff; }
-          52%, 55%   { background: linear-gradient(155deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.12) 25%, rgba(255,255,255,0.16) 49%, rgba(0,0,0,0) 78%, rgba(0,0,0,0.75) 100%); box-shadow: 0 0 2px #111; }
-          57%, 69%   { background: #fff; box-shadow: 0 0 7px 3px #fff; }
-          70%, 71%   { background: linear-gradient(155deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.12) 25%, rgba(255,255,255,0.16) 49%, rgba(0,0,0,0) 78%, rgba(0,0,0,0.75) 100%); box-shadow: 0 0 2px #111; }
-          72%, 75%   { background: #fff; box-shadow: 0 0 7px 3px #fff; }
-          77%, 100%  { background: linear-gradient(155deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.12) 25%, rgba(255,255,255,0.16) 49%, rgba(0,0,0,0) 78%, rgba(0,0,0,0.75) 100%); box-shadow: 0 0 2px #111; }
+          0%, 25%    { background: linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.65) 100%); box-shadow: 0 0 1px #000; }
+          28%, 50%   { background: #fff; box-shadow: 0 0 10px 5px rgba(255,255,255,0.9), 0 0 22px 10px rgba(255,255,255,0.45); }
+          52%, 55%   { background: linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.65) 100%); box-shadow: 0 0 1px #000; }
+          57%, 69%   { background: #fff; box-shadow: 0 0 10px 5px rgba(255,255,255,0.9), 0 0 22px 10px rgba(255,255,255,0.45); }
+          70%, 71%   { background: linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.65) 100%); box-shadow: 0 0 1px #000; }
+          72%, 75%   { background: #fff; box-shadow: 0 0 10px 5px rgba(255,255,255,0.9), 0 0 22px 10px rgba(255,255,255,0.45); }
+          77%, 100%  { background: linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.65) 100%); box-shadow: 0 0 1px #000; }
         }
 
-        /* Inner-light BLUE glow — deep electric blue */
+        /* Inner-light BLUE — vivid electric blue, strong bloom */
         @keyframes lb-inner-b {
           0%, 25%    { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          28%, 50%   { opacity: 1; border-color: #2255ff; background: rgba(20,60,255,0.65); box-shadow: 0 0 22px 8px #0022ff, 0 0 6px 2px #0044ff inset; }
+          28%, 50%   { opacity: 1; border-color: #5599ff; background: #2255ff; box-shadow: 0 0 16px 8px #0033ee, 0 0 32px 16px rgba(0,50,230,0.5), 0 0 5px 2px #aaccff inset; }
           52%, 55%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          57%, 69%   { opacity: 1; border-color: #2255ff; background: rgba(20,60,255,0.65); box-shadow: 0 0 22px 8px #0022ff, 0 0 6px 2px #0044ff inset; }
+          57%, 69%   { opacity: 1; border-color: #5599ff; background: #2255ff; box-shadow: 0 0 16px 8px #0033ee, 0 0 32px 16px rgba(0,50,230,0.5), 0 0 5px 2px #aaccff inset; }
           70%, 71%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          72%, 75%   { opacity: 1; border-color: #2255ff; background: rgba(20,60,255,0.65); box-shadow: 0 0 22px 8px #0022ff, 0 0 6px 2px #0044ff inset; }
+          72%, 75%   { opacity: 1; border-color: #5599ff; background: #2255ff; box-shadow: 0 0 16px 8px #0033ee, 0 0 32px 16px rgba(0,50,230,0.5), 0 0 5px 2px #aaccff inset; }
           77%, 100%  { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
         }
 
-        /* Inner-light RED glow — pure saturated red */
+        /* Inner-light RED — vivid pure red, strong bloom */
         @keyframes lb-inner-r {
           0%, 25%    { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          28%, 50%   { opacity: 1; border-color: #ff1010; background: rgba(255,10,10,0.65); box-shadow: 0 0 22px 8px #cc0000, 0 0 6px 2px #ff2020 inset; }
+          28%, 50%   { opacity: 1; border-color: #ff5555; background: #ff1111; box-shadow: 0 0 16px 8px #cc0000, 0 0 32px 16px rgba(200,0,0,0.5), 0 0 5px 2px #ffaaaa inset; }
           52%, 55%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          57%, 69%   { opacity: 1; border-color: #ff1010; background: rgba(255,10,10,0.65); box-shadow: 0 0 22px 8px #cc0000, 0 0 6px 2px #ff2020 inset; }
+          57%, 69%   { opacity: 1; border-color: #ff5555; background: #ff1111; box-shadow: 0 0 16px 8px #cc0000, 0 0 32px 16px rgba(200,0,0,0.5), 0 0 5px 2px #ffaaaa inset; }
           70%, 71%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          72%, 75%   { opacity: 1; border-color: #ff1010; background: rgba(255,10,10,0.65); box-shadow: 0 0 22px 8px #cc0000, 0 0 6px 2px #ff2020 inset; }
+          72%, 75%   { opacity: 1; border-color: #ff5555; background: #ff1111; box-shadow: 0 0 16px 8px #cc0000, 0 0 32px 16px rgba(200,0,0,0.5), 0 0 5px 2px #ffaaaa inset; }
           77%, 100%  { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
         }
       `}</style>
@@ -126,24 +126,28 @@ export function PoliceLightBar({ className = "" }: { className?: string }) {
 export function AmbientPoliceGlow() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      <div className="absolute -top-20 -left-20 w-96 h-96 rounded-full opacity-0 dark:opacity-100 ambient-red" />
-      <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full opacity-0 dark:opacity-100 ambient-blue" />
+      {/* Red — top-left of content area (offset past 240px sidebar) */}
+      <div className="absolute ambient-red" style={{ top: -60, left: 200, width: 420, height: 420, borderRadius: "50%" }} />
+      {/* Blue — top-right */}
+      <div className="absolute ambient-blue" style={{ top: -60, right: -60, width: 420, height: 420, borderRadius: "50%" }} />
       <style>{`
         .ambient-red {
-          background: radial-gradient(circle, rgba(255,10,10,0.18) 0%, transparent 65%);
+          background: radial-gradient(circle, rgba(255,10,10,0.32) 0%, rgba(255,30,30,0.14) 40%, transparent 70%);
           animation: ambientR 0.8s linear infinite;
+          opacity: 0;
         }
         .ambient-blue {
-          background: radial-gradient(circle, rgba(20,60,255,0.18) 0%, transparent 65%);
+          background: radial-gradient(circle, rgba(30,60,255,0.32) 0%, rgba(30,80,255,0.14) 40%, transparent 70%);
           animation: ambientB 0.8s linear infinite;
           animation-delay: 400ms;
+          opacity: 0;
         }
         @keyframes ambientR {
           0%,25%   { opacity:0; }
           28%,50%  { opacity:1; }
           52%,55%  { opacity:0; }
           57%,69%  { opacity:1; }
-          70%,77%  { opacity:0; }
+          70%,71%  { opacity:0; }
           72%,75%  { opacity:1; }
           77%,100% { opacity:0; }
         }
@@ -152,7 +156,7 @@ export function AmbientPoliceGlow() {
           28%,50%  { opacity:1; }
           52%,55%  { opacity:0; }
           57%,69%  { opacity:1; }
-          70%,77%  { opacity:0; }
+          70%,71%  { opacity:0; }
           72%,75%  { opacity:1; }
           77%,100% { opacity:0; }
         }

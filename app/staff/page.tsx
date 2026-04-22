@@ -16,6 +16,75 @@ function getInitials(name: string) {
   return name.split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase();
 }
 
+// ── Rank Insignia SVGs ──────────────────────────────────────────────────────
+
+function FiveStar({ size = 22, color = "#f59e0b", glow = false }: { size?: number; color?: string; glow?: boolean }) {
+  // Points: alternating outer (r=11) and inner (r=4.5) from top, 24x24 viewbox
+  const pts = "12,1 14.65,8.37 22.47,8.6 16.28,13.39 18.46,20.9 12,16.5 5.54,20.9 7.72,13.39 1.53,8.6 9.35,8.37";
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={glow ? { filter: `drop-shadow(0 0 4px ${color})` } : undefined}>
+      <polygon points={pts} fill={color} />
+    </svg>
+  );
+}
+
+function SheriffStar({ size = 36, color = "#f59e0b", glow = false }: { size?: number; color?: string; glow?: boolean }) {
+  // 6-pointed star (traditional sheriff badge star), 28x28 viewbox
+  const outer = "14,1 17.06,9.28 25.93,7.5 20,14 25.93,20.5 17.06,18.72 14,27 10.94,18.72 2.07,20.5 8,14 2.07,7.5 10.94,9.28";
+  return (
+    <svg width={size} height={size} viewBox="0 0 28 28" style={glow ? { filter: `drop-shadow(0 0 6px ${color})` } : undefined}>
+      <polygon points={outer} fill={color} />
+      {/* Center circle detail */}
+      <circle cx="14" cy="14" r="4.5" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="1.5" />
+      <circle cx="14" cy="14" r="2" fill="rgba(0,0,0,0.25)" />
+    </svg>
+  );
+}
+
+function EagleInsignia({ size = 40, color = "#fb923c", glow = false }: { size?: number; color?: string; glow?: boolean }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" style={glow ? { filter: `drop-shadow(0 0 5px ${color})` } : undefined}>
+      {/* Wings */}
+      <path d="M24,18 C20,14 10,12 2,16 C8,17 13,19 16,22 C13,21 8,21 4,23 C9,23 14,24 17,26 C24,20 24,20 24,18Z" fill={color} opacity="0.9"/>
+      <path d="M24,18 C28,14 38,12 46,16 C40,17 35,19 32,22 C35,21 40,21 44,23 C39,23 34,24 31,26 C24,20 24,20 24,18Z" fill={color} opacity="0.9"/>
+      {/* Body */}
+      <ellipse cx="24" cy="24" rx="5" ry="8" fill={color} />
+      {/* Head */}
+      <circle cx="24" cy="16" r="4" fill={color} />
+      {/* Beak */}
+      <path d="M24,18 L27,20 L24,20Z" fill="rgba(0,0,0,0.4)" />
+      {/* Tail */}
+      <path d="M21,30 L24,36 L27,30Z" fill={color} opacity="0.8" />
+      {/* Star on chest */}
+      <polygon points="24,20 24.9,22.8 27.9,22.8 25.5,24.5 26.4,27.2 24,25.5 21.6,27.2 22.5,24.5 20.1,22.8 23.1,22.8" fill="rgba(0,0,0,0.3)" />
+    </svg>
+  );
+}
+
+const RANK_INSIGNIA: Record<string, (hovered: boolean, color: string) => React.ReactNode> = {
+  Sheriff: (hovered, color) => (
+    <div className="flex items-center justify-center">
+      <SheriffStar size={40} color={color} glow={hovered} />
+    </div>
+  ),
+  Undersheriff: (hovered, color) => (
+    <div className="flex items-center justify-center gap-1">
+      <FiveStar size={22} color={color} glow={hovered} />
+      <FiveStar size={22} color={color} glow={hovered} />
+    </div>
+  ),
+  "Chief Deputy": (hovered, color) => (
+    <div className="flex items-center justify-center">
+      <FiveStar size={26} color={color} glow={hovered} />
+    </div>
+  ),
+  Colonel: (hovered, color) => (
+    <div className="flex items-center justify-center">
+      <EagleInsignia size={38} color={color} glow={hovered} />
+    </div>
+  ),
+};
+
 function TiltCard({ member, index }: { member: StaticStaffMember; index: number }) {
   const cfg = RANK_CONFIG[member.rank] ?? RANK_CONFIG["Colonel"];
   const ref = useRef<HTMLDivElement>(null);
@@ -167,9 +236,18 @@ function TiltCard({ member, index }: { member: StaticStaffMember; index: number 
             </motion.h3>
 
             {/* Rank */}
-            <p className="font-display text-sm tracking-widest uppercase mb-4" style={{ color: cfg.color, opacity: 0.9 }}>
+            <p className="font-display text-sm tracking-widest uppercase mb-3" style={{ color: cfg.color, opacity: 0.9 }}>
               {member.rank}
             </p>
+
+            {/* Rank insignia */}
+            <motion.div
+              className="mb-4"
+              animate={{ scale: hovered ? 1.12 : 1, opacity: hovered ? 1 : 0.85 }}
+              transition={{ duration: 0.25 }}
+            >
+              {RANK_INSIGNIA[member.rank]?.(hovered, cfg.color)}
+            </motion.div>
 
             {/* Divider */}
             <motion.div

@@ -189,7 +189,7 @@ export function PoliciesClient({ sections }: Props) {
         <main ref={contentRef} className="flex-1 overflow-y-auto">
           {searchResults !== null ? (
             /* Search results view */
-            <div className="p-8 max-w-3xl">
+            <div className="p-8 max-w-3xl mx-auto">
               <p className="font-display text-xs tracking-widest text-[var(--text-muted)] uppercase mb-6">
                 {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} for &ldquo;{search}&rdquo;
               </p>
@@ -233,7 +233,7 @@ export function PoliciesClient({ sections }: Props) {
             </div>
           ) : activeSection ? (
             /* Section content view */
-            <div className="p-8 max-w-3xl">
+            <div className="p-8 max-w-3xl mx-auto">
               {/* Section header */}
               <div className="mb-8 pb-6 border-b border-[var(--border)]">
                 <div className="flex items-center gap-3 mb-3">
