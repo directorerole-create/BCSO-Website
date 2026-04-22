@@ -47,7 +47,7 @@ export function PoliceLightBar({ className = "" }: { className?: string }) {
           justify-content: space-between;
           animation-duration: ${DURATION};
           animation-iteration-count: infinite;
-          overflow: hidden;
+          overflow: visible;
         }
 
         .lb-inner {
@@ -87,36 +87,36 @@ export function PoliceLightBar({ className = "" }: { className?: string }) {
         .lb-inner-red   { animation-name: lb-inner-r; animation-delay: calc(${DURATION} / 2); }
         .lb-bulb-red    { animation-name: lb-bulb-b;  animation-delay: calc(${DURATION} / 2); }
 
-        /* Bulb flash — brilliant white */
+        /* Bulb flash — brilliant white with halo */
         @keyframes lb-bulb-b {
           0%, 25%    { background: linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.65) 100%); box-shadow: 0 0 1px #000; }
-          28%, 50%   { background: #fff; box-shadow: 0 0 6px 3px rgba(255,255,255,0.95); }
+          28%, 50%   { background: #fff; box-shadow: 0 0 10px 5px rgba(255,255,255,0.9), 0 0 22px 10px rgba(255,255,255,0.45); }
           52%, 55%   { background: linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.65) 100%); box-shadow: 0 0 1px #000; }
-          57%, 69%   { background: #fff; box-shadow: 0 0 6px 3px rgba(255,255,255,0.95); }
+          57%, 69%   { background: #fff; box-shadow: 0 0 10px 5px rgba(255,255,255,0.9), 0 0 22px 10px rgba(255,255,255,0.45); }
           70%, 71%   { background: linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.65) 100%); box-shadow: 0 0 1px #000; }
-          72%, 75%   { background: #fff; box-shadow: 0 0 6px 3px rgba(255,255,255,0.95); }
+          72%, 75%   { background: #fff; box-shadow: 0 0 10px 5px rgba(255,255,255,0.9), 0 0 22px 10px rgba(255,255,255,0.45); }
           77%, 100%  { background: linear-gradient(155deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.65) 100%); box-shadow: 0 0 1px #000; }
         }
 
-        /* Inner-light BLUE — vivid electric blue */
+        /* Inner-light BLUE — vivid electric blue, strong bloom */
         @keyframes lb-inner-b {
           0%, 25%    { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          28%, 50%   { opacity: 1; border-color: #5599ff; background: #2255ff; box-shadow: 0 0 8px 4px #0033ee, 0 0 3px 1px #aaccff inset; }
+          28%, 50%   { opacity: 1; border-color: #5599ff; background: #2255ff; box-shadow: 0 0 16px 8px #0033ee, 0 0 28px 12px rgba(0,50,230,0.5), 0 0 5px 2px #aaccff inset; }
           52%, 55%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          57%, 69%   { opacity: 1; border-color: #5599ff; background: #2255ff; box-shadow: 0 0 8px 4px #0033ee, 0 0 3px 1px #aaccff inset; }
+          57%, 69%   { opacity: 1; border-color: #5599ff; background: #2255ff; box-shadow: 0 0 16px 8px #0033ee, 0 0 28px 12px rgba(0,50,230,0.5), 0 0 5px 2px #aaccff inset; }
           70%, 71%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          72%, 75%   { opacity: 1; border-color: #5599ff; background: #2255ff; box-shadow: 0 0 8px 4px #0033ee, 0 0 3px 1px #aaccff inset; }
+          72%, 75%   { opacity: 1; border-color: #5599ff; background: #2255ff; box-shadow: 0 0 16px 8px #0033ee, 0 0 28px 12px rgba(0,50,230,0.5), 0 0 5px 2px #aaccff inset; }
           77%, 100%  { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
         }
 
-        /* Inner-light RED — vivid pure red */
+        /* Inner-light RED — vivid pure red, strong bloom */
         @keyframes lb-inner-r {
           0%, 25%    { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          28%, 50%   { opacity: 1; border-color: #ff5555; background: #ff1111; box-shadow: 0 0 8px 4px #cc0000, 0 0 3px 1px #ffaaaa inset; }
+          28%, 50%   { opacity: 1; border-color: #ff5555; background: #ff1111; box-shadow: 0 0 16px 8px #cc0000, 0 0 28px 12px rgba(200,0,0,0.5), 0 0 5px 2px #ffaaaa inset; }
           52%, 55%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          57%, 69%   { opacity: 1; border-color: #ff5555; background: #ff1111; box-shadow: 0 0 8px 4px #cc0000, 0 0 3px 1px #ffaaaa inset; }
+          57%, 69%   { opacity: 1; border-color: #ff5555; background: #ff1111; box-shadow: 0 0 16px 8px #cc0000, 0 0 28px 12px rgba(200,0,0,0.5), 0 0 5px 2px #ffaaaa inset; }
           70%, 71%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          72%, 75%   { opacity: 1; border-color: #ff5555; background: #ff1111; box-shadow: 0 0 8px 4px #cc0000, 0 0 3px 1px #ffaaaa inset; }
+          72%, 75%   { opacity: 1; border-color: #ff5555; background: #ff1111; box-shadow: 0 0 16px 8px #cc0000, 0 0 28px 12px rgba(200,0,0,0.5), 0 0 5px 2px #ffaaaa inset; }
           77%, 100%  { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
         }
       `}</style>

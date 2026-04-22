@@ -1,6 +1,6 @@
 "use client";
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Search, BookOpen, ChevronRight, ChevronDown, Hash, Shield } from "lucide-react";
+import { Search, BookOpen, ChevronRight, ChevronDown, Hash } from "lucide-react";
 import { SopSection, SopSubsection } from "@/lib/sop-data";
 
 function renderContent(content: string) {
@@ -104,29 +104,33 @@ export function PoliciesClient({ sections }: Props) {
       </div>
 
       <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 140px)" }}>
-        {/* Left sidebar — section list */}
-        <aside className="w-64 flex-shrink-0 border-r border-[var(--border)] flex flex-col overflow-hidden bg-[var(--bg-panel)]">
-          {/* Search */}
-          <div className="p-3 border-b border-[var(--border)]">
+        {/* Left panel — table of contents */}
+        <aside className="w-72 flex-shrink-0 border-r border-[var(--border)] flex flex-col overflow-hidden" style={{ background: "var(--bg-main, var(--bg-panel))" }}>
+          {/* TOC header + search */}
+          <div className="px-5 pt-5 pb-3 border-b border-[var(--border)]/60">
+            <div className="flex items-center gap-2 mb-3">
+              <Hash className="w-3 h-3 text-badge/60" />
+              <span className="font-display text-[9px] tracking-[0.4em] text-[var(--text-muted)] uppercase">Table of Contents</span>
+            </div>
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)]" />
               <input
                 type="text"
-                placeholder="Search SOPs..."
+                placeholder="Search policies..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="search-input w-full pl-8 pr-3 py-1.5 rounded text-xs"
+                className="search-input w-full pl-7 pr-3 py-1.5 rounded text-[11px]"
               />
             </div>
           </div>
 
-          {/* Section list */}
-          <nav className="flex-1 overflow-y-auto py-2">
+          {/* Section list — document TOC style */}
+          <nav className="flex-1 overflow-y-auto py-3 px-3">
             {sections.map(section => {
               const isActive = section.id === activeSectionId;
               const isExpanded = expandedSections.has(section.id);
               return (
-                <div key={section.id}>
+                <div key={section.id} className="mb-0.5">
                   <button
                     onClick={() => {
                       if (isActive) {
@@ -135,24 +139,25 @@ export function PoliciesClient({ sections }: Props) {
                         selectSection(section.id);
                       }
                     }}
-                    className={`w-full flex items-center gap-2 px-3 py-2.5 text-left transition-all group ${
+                    className={`w-full flex items-start gap-2.5 px-2 py-2 text-left rounded transition-all group ${
                       isActive
-                        ? "bg-[var(--badge)]/15 border-r-2 border-[var(--badge)]"
-                        : "hover:bg-[var(--bg-panel-alt)]"
+                        ? "bg-badge/10"
+                        : "hover:bg-[var(--border)]/30"
                     }`}
                   >
-                    <span className={`font-mono text-xs font-bold w-6 flex-shrink-0 ${isActive ? "text-badge" : "text-[var(--text-muted)]"}`}>
+                    {/* Section number — looks like a document index */}
+                    <span className={`font-mono text-[10px] font-bold mt-0.5 w-5 flex-shrink-0 ${isActive ? "text-badge" : "text-[var(--text-muted)]"}`}>
                       {section.number}
                     </span>
-                    <span className={`font-display text-xs tracking-wide flex-1 leading-tight ${isActive ? "text-badge font-semibold" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"}`}>
+                    <span className={`font-display text-[11px] tracking-wide flex-1 leading-snug ${isActive ? "text-badge font-semibold" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"}`}>
                       {section.title}
                     </span>
-                    <ChevronDown className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 ${isActive ? "text-badge" : "text-[var(--text-muted)]"} ${isExpanded ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`w-3 h-3 flex-shrink-0 mt-0.5 transition-transform duration-200 ${isActive ? "text-badge/70" : "text-[var(--text-muted)]/50"} ${isExpanded ? "rotate-180" : ""}`} />
                   </button>
 
-                  {/* Subsection list */}
+                  {/* Subsection list — indented document entries */}
                   {isExpanded && (
-                    <div className="bg-[var(--bg-panel-alt)]/50 border-b border-[var(--border)]/40">
+                    <div className="ml-5 mt-0.5 mb-1 border-l-2 border-[var(--border)]/60 pl-3 space-y-0.5">
                       {section.subsections.map(sub => (
                         <a
                           key={sub.id}
@@ -165,10 +170,10 @@ export function PoliciesClient({ sections }: Props) {
                               if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
                             }, 50);
                           }}
-                          className="flex items-center gap-2 pl-8 pr-3 py-2 text-[var(--text-muted)] hover:text-badge hover:bg-[var(--badge)]/5 transition-colors"
+                          className="flex items-baseline gap-2 py-1 px-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group"
                         >
-                          <span className="font-mono text-[10px] text-badge/50 w-7 flex-shrink-0">{sub.number}</span>
-                          <span className="font-display text-[11px] tracking-wide leading-tight">{sub.title}</span>
+                          <span className="font-mono text-[9px] text-badge/40 flex-shrink-0 group-hover:text-badge/70 transition-colors">{sub.number}</span>
+                          <span className="font-display text-[10px] tracking-wide leading-snug">{sub.title}</span>
                         </a>
                       ))}
                     </div>
@@ -179,9 +184,8 @@ export function PoliciesClient({ sections }: Props) {
           </nav>
 
           {/* Footer */}
-          <div className="p-3 border-t border-[var(--border)] text-center">
-            <Shield className="w-4 h-4 text-badge/30 mx-auto mb-1" />
-            <p className="font-display text-[8px] tracking-widest text-[var(--text-muted)] uppercase">BCSO Policy Manual</p>
+          <div className="px-5 py-3 border-t border-[var(--border)]/60">
+            <p className="font-display text-[8px] tracking-[0.3em] text-[var(--text-muted)]/50 uppercase">BCSO Policy Manual — Rev. 2026</p>
           </div>
         </aside>
 
