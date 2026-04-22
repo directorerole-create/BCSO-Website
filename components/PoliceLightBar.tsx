@@ -97,25 +97,25 @@ export function PoliceLightBar({ className = "" }: { className?: string }) {
           77%, 100%  { background: linear-gradient(155deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.12) 25%, rgba(255,255,255,0.16) 49%, rgba(0,0,0,0) 78%, rgba(0,0,0,0.75) 100%); box-shadow: 0 0 2px #111; }
         }
 
-        /* Inner-light BLUE glow */
+        /* Inner-light BLUE glow — deep electric blue */
         @keyframes lb-inner-b {
           0%, 25%    { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          28%, 50%   { opacity: 1; border-color: #139eff; background: rgba(102,210,255,0.55); box-shadow: 0 0 18px 6px #0078ff; }
+          28%, 50%   { opacity: 1; border-color: #2255ff; background: rgba(20,60,255,0.65); box-shadow: 0 0 22px 8px #0022ff, 0 0 6px 2px #0044ff inset; }
           52%, 55%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          57%, 69%   { opacity: 1; border-color: #139eff; background: rgba(102,210,255,0.55); box-shadow: 0 0 18px 6px #0078ff; }
+          57%, 69%   { opacity: 1; border-color: #2255ff; background: rgba(20,60,255,0.65); box-shadow: 0 0 22px 8px #0022ff, 0 0 6px 2px #0044ff inset; }
           70%, 71%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          72%, 75%   { opacity: 1; border-color: #139eff; background: rgba(102,210,255,0.55); box-shadow: 0 0 18px 6px #0078ff; }
+          72%, 75%   { opacity: 1; border-color: #2255ff; background: rgba(20,60,255,0.65); box-shadow: 0 0 22px 8px #0022ff, 0 0 6px 2px #0044ff inset; }
           77%, 100%  { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
         }
 
-        /* Inner-light RED glow */
+        /* Inner-light RED glow — pure saturated red */
         @keyframes lb-inner-r {
           0%, 25%    { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          28%, 50%   { opacity: 1; border-color: #ee2819; background: rgba(255,60,45,0.55); box-shadow: 0 0 18px 6px #ff4444; }
+          28%, 50%   { opacity: 1; border-color: #ff1010; background: rgba(255,10,10,0.65); box-shadow: 0 0 22px 8px #cc0000, 0 0 6px 2px #ff2020 inset; }
           52%, 55%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          57%, 69%   { opacity: 1; border-color: #ee2819; background: rgba(255,60,45,0.55); box-shadow: 0 0 18px 6px #ff4444; }
+          57%, 69%   { opacity: 1; border-color: #ff1010; background: rgba(255,10,10,0.65); box-shadow: 0 0 22px 8px #cc0000, 0 0 6px 2px #ff2020 inset; }
           70%, 71%   { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
-          72%, 75%   { opacity: 1; border-color: #ee2819; background: rgba(255,60,45,0.55); box-shadow: 0 0 18px 6px #ff4444; }
+          72%, 75%   { opacity: 1; border-color: #ff1010; background: rgba(255,10,10,0.65); box-shadow: 0 0 22px 8px #cc0000, 0 0 6px 2px #ff2020 inset; }
           77%, 100%  { opacity: 0; background: transparent; box-shadow: none; border-color: transparent; }
         }
       `}</style>
@@ -130,11 +130,11 @@ export function AmbientPoliceGlow() {
       <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full opacity-0 dark:opacity-100 ambient-blue" />
       <style>{`
         .ambient-red {
-          background: radial-gradient(circle, rgba(230,57,70,0.15) 0%, transparent 65%);
+          background: radial-gradient(circle, rgba(255,10,10,0.18) 0%, transparent 65%);
           animation: ambientR 0.8s linear infinite;
         }
         .ambient-blue {
-          background: radial-gradient(circle, rgba(29,111,204,0.15) 0%, transparent 65%);
+          background: radial-gradient(circle, rgba(20,60,255,0.18) 0%, transparent 65%);
           animation: ambientB 0.8s linear infinite;
           animation-delay: 400ms;
         }
