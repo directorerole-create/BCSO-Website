@@ -48,7 +48,7 @@ export function RosterClient({ roster }: { roster: RosterMember[] }) {
 
   const tierCounts = useMemo(() => {
     const counts: Record<string, number> = { all: roster.length };
-    for (const t of RANK_TIERS) counts[t.key] = roster.filter(m => t.ranks.includes(m.rank)).length;
+    for (const t of RANK_TIERS) counts[t.key] = roster.filter(m => tierKey(m.rank) === t.key).length;
     return counts;
   }, [roster]);
 
@@ -74,7 +74,7 @@ export function RosterClient({ roster }: { roster: RosterMember[] }) {
       return tier ? [{ tier, members: displayed }] : [];
     }
     return RANK_TIERS
-      .map(tier => ({ tier, members: displayed.filter(m => tier.ranks.includes(m.rank)) }))
+      .map(tier => ({ tier, members: displayed.filter(m => tierKey(m.rank) === tier.key) }))
       .filter(g => g.members.length > 0);
   }, [displayed, tierFilter]);
 
