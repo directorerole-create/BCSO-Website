@@ -85,7 +85,7 @@ export function RosterClient({ roster }: { roster: RosterMember[] }) {
         <span className="font-display text-[10px] tracking-[0.5em] text-badge uppercase block mb-1">Department Portal</span>
         <h1 className="font-display text-2xl sm:text-3xl font-bold text-primary-color tracking-tight flex items-center gap-3">
           <Users className="w-6 h-6 sm:w-7 sm:h-7 text-badge flex-shrink-0" strokeWidth={1.5} />
-          PERSONNEL ROSTER
+          PUBLIC ROSTER
         </h1>
         <p className="text-[var(--text-secondary)] mt-1 text-sm">
           Blaine County Sheriff&apos;s Office &mdash; <span className="text-emerald-400">{activeCount} active</span> of {roster.length} total

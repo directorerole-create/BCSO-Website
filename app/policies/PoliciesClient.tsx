@@ -115,10 +115,10 @@ export function PoliciesClient({ sections }: Props) {
                 onClick={() => { if (isActive) toggleSection(section.id); else selectSection(section.id); }}
                 className={`w-full flex items-start gap-2.5 px-2 py-2 text-left rounded transition-all group ${isActive ? "bg-badge/8" : "hover:bg-[var(--border)]/20"}`}
               >
-                <span className={`font-mono text-[10px] font-bold mt-0.5 w-5 flex-shrink-0 ${isActive ? "text-badge" : "text-[var(--text-muted)]"}`}>
+                <span className={`font-mono text-xs font-bold mt-0.5 w-5 flex-shrink-0 ${isActive ? "text-badge" : "text-[var(--text-muted)]"}`}>
                   {section.number}
                 </span>
-                <span className={`font-display text-[11px] tracking-wide flex-1 leading-snug ${isActive ? "text-badge font-semibold" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"}`}>
+                <span className={`font-display text-sm tracking-wide flex-1 leading-snug ${isActive ? "text-badge font-semibold" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"}`}>
                   {section.title}
                 </span>
                 <ChevronDown className={`w-3 h-3 flex-shrink-0 mt-0.5 transition-transform duration-200 ${isActive ? "text-badge/70" : "text-[var(--text-muted)]/50"} ${isExpanded ? "rotate-180" : ""}`} />
@@ -138,8 +138,8 @@ export function PoliciesClient({ sections }: Props) {
                       }}
                       className="flex items-baseline gap-2 py-1 px-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group"
                     >
-                      <span className="font-mono text-[9px] text-badge/40 flex-shrink-0 group-hover:text-badge/70 transition-colors">{sub.number}</span>
-                      <span className="font-display text-[10px] tracking-wide leading-snug">{sub.title}</span>
+                      <span className="font-mono text-[10px] text-badge/40 flex-shrink-0 group-hover:text-badge/70 transition-colors">{sub.number}</span>
+                      <span className="font-display text-xs tracking-wide leading-snug">{sub.title}</span>
                     </a>
                   ))}
                 </div>
