@@ -1,6 +1,8 @@
 import { supabase, RosterMember } from "@/lib/supabase";
 import { RosterClient } from "./RosterClient";
 
+export const dynamic = "force-dynamic";
+
 async function getRoster(): Promise<RosterMember[]> {
   try {
     const { data, error } = await supabase.from("roster").select("*");
