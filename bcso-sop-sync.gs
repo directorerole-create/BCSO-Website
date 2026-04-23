@@ -137,24 +137,46 @@ function processTab(tab, order) {
   if (!hasH2) {
     var allText = "";
     for (var i = 0; i < numChildren; i++) {
-      var el = body.getChild(i);
-      if (el.getType() === DocumentApp.ElementType.PARAGRAPH) {
-        var p  = el.asParagraph();
-        if (p.getHeading() !== DocumentApp.ParagraphHeading.NORMAL_TEXT &&
+      var el    = body.getChild(i);
+      var elTyp = el.getType();
+
+      if (elTyp === DocumentApp.ElementType.PARAGRAPH) {
+        var p = el.asParagraph();
+        if (p.getHeading() !== DocumentApp.ParagraphHeading.NORMAL &&
             p.getHeading() !== DocumentApp.ParagraphHeading.HEADING1) continue;
         var parsed = parseParagraphText(p);
         if (parsed) {
           if (allText) allText += "\n";
           allText += parsed;
         }
-      } else if (el.getType() === DocumentApp.ElementType.LIST_ITEM) {
+
+      } else if (elTyp === DocumentApp.ElementType.LIST_ITEM) {
         var it = el.asListItem().getText().trim();
         if (it) {
           if (allText) allText += "\n";
           allText += "- " + it;
         }
+
+      } else if (elTyp === DocumentApp.ElementType.TABLE) {
+        // Extract text from table cells
+        var table   = el.asTable();
+        var numRows = table.getNumRows();
+        for (var r = 0; r < numRows; r++) {
+          var row      = table.getRow(r);
+          var numCells = row.getNumCells();
+          var rowParts = [];
+          for (var c = 0; c < numCells; c++) {
+            var cellText = row.getCell(c).getText().trim();
+            if (cellText) rowParts.push(cellText);
+          }
+          if (rowParts.length) {
+            if (allText) allText += "\n";
+            allText += rowParts.join("   ");
+          }
+        }
       }
     }
+    Logger.log("Tab '" + tabTitle + "' overview text length: " + allText.length);
     if (allText) {
       section.subsections.push({
         number: "", title: "Overview", display_order: 1, content: allText,
@@ -241,40 +263,32 @@ function debugSop() {
 
 // ── TRIGGER SETUP ────────────────────────────────────────────────────────────
 
-function onSopChange() {
-  syncSopNow();
-}
+// ── TRIGGER SETUP ────────────────────────────────────────────────────────────
+// Note: Google Docs does NOT support onChange triggers (only Sheets does).
+// The best available option is a time-based trigger every few minutes.
+// Run setupSopTriggers() ONCE to install it.
 
 function setupSopTriggers() {
   var triggers = ScriptApp.getProjectTriggers();
   for (var i = 0; i < triggers.length; i++) {
-    var fn = triggers[i].getHandlerFunction();
-    if (fn === "syncSopNow" || fn === "onSopChange") {
+    if (triggers[i].getHandlerFunction() === "syncSopNow") {
       ScriptApp.deleteTrigger(triggers[i]);
     }
   }
 
-  var doc = DocumentApp.openById(SOP_DOC_ID);
-
-  ScriptApp.newTrigger("onSopChange")
-    .forDocument(doc)
-    .onChange()
-    .create();
-
   ScriptApp.newTrigger("syncSopNow")
     .timeBased()
-    .everyHours(1)
+    .everyMinutes(1)
     .create();
 
-  Logger.log("✓ SOP triggers installed: onChange (instant) + hourly fallback.");
+  Logger.log("✓ SOP trigger installed: syncs every minute.");
 }
 
 function removeSopTriggers() {
   var triggers = ScriptApp.getProjectTriggers();
   var removed  = 0;
   for (var i = 0; i < triggers.length; i++) {
-    var fn = triggers[i].getHandlerFunction();
-    if (fn === "syncSopNow" || fn === "onSopChange") {
+    if (triggers[i].getHandlerFunction() === "syncSopNow") {
       ScriptApp.deleteTrigger(triggers[i]);
       removed++;
     }
