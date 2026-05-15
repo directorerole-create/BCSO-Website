@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import { RosterClient } from "../roster/RosterClient";
+import { RosterGSClient } from "./RosterGSClient";
 import { RosterMember } from "@/lib/supabase";
 
 const CSV_URL = "https://docs.google.com/spreadsheets/d/1E_tIWj0bcgdLBf5bdDCjH3nMhxUtO73TNlRW2CwSIkk/export?format=csv&gid=2065550040";
@@ -7,18 +7,30 @@ const CSV_URL = "https://docs.google.com/spreadsheets/d/1E_tIWj0bcgdLBf5bdDCjH3n
 // Same skip list as the Apps Script so we ignore header/divider rows
 const SKIP_ROWS = new Set([1,2,3,4,5,6,7,8,9,10,11,12,18,25,37,47,147,247,347,480,532,584,636,664]);
 
-// Sheet column header (lowercase) → RosterMember field name
+// Sheet column header (lowercase, whitespace-normalized) → RosterMember field name
+// May = current month → april_* fields (what the table displays as "current")
+// April = previous month → march_* fields
 const HEADER_MAP: Record<string, string> = {
-  "name":               "name",
-  "rank":               "rank",
-  "website id":         "badge_number",
-  "callsign":           "callsign",
-  "assignment":         "division",
-  "activity status":    "status",
-  "date of membership": "joined_date",
-  "phone number":       "phone_number",
-  "patrol last seen":   "patrol_last_seen",
-  "admin last seen":    "admin_last_seen",
+  "name":                   "name",
+  "rank":                   "rank",
+  "website id":             "badge_number",
+  "callsign":               "callsign",
+  "assignment":             "division",
+  "activity status":        "status",
+  "date of membership":     "joined_date",
+  "phone number":           "phone_number",
+  "patrol last seen":       "patrol_last_seen",
+  "admin last seen":        "admin_last_seen",
+  // Current month (May)
+  "may total activity":     "april_total_activity",
+  "may patrol hour's":      "april_patrol_hours",
+  "may admin hour's":       "april_admin_hours",
+  "may patrol logs":        "april_patrol_logs",
+  // Previous month (April)
+  "april total activity":   "march_total_activity",
+  "april patrol hour's":    "march_patrol_hours",
+  "april admin hour's":     "march_admin_hours",
+  "april patrol logs":      "march_patrol_logs",
 };
 
 function parseCSV(text: string): string[][] {
@@ -121,5 +133,5 @@ async function getRoster(): Promise<RosterMember[]> {
 
 export default async function RosterGSPage() {
   const roster = await getRoster();
-  return <RosterClient roster={roster} />;
+  return <RosterGSClient roster={roster} />;
 }
