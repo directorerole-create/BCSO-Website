@@ -207,7 +207,7 @@ export function RosterGSClient({ roster, colLabels }: {
       </div>
 
       {/* Desktop table */}
-      <div className="hidden sm:block panel overflow-x-auto relative">
+      <div className="hidden sm:block panel overflow-x-auto overflow-y-auto relative" style={{ maxHeight: "calc(100vh - 180px)" }}>
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] z-0">
           <div className="relative w-72 h-72">
             <Image src="/BCSOBadge.png" alt="" fill className="object-contain" />
@@ -215,7 +215,7 @@ export function RosterGSClient({ roster, colLabels }: {
         </div>
 
         <div className="relative z-10 min-w-max">
-          <div className="grid roster-cols gap-3 px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-panel-alt)]">
+          <div className="sticky top-0 z-20 grid roster-cols gap-3 px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-panel-alt)]">
             {colLabels.map((h, i) => (
               <span key={i} className="font-display text-[9px] tracking-widest text-[var(--text-muted)] uppercase">{h}</span>
             ))}
