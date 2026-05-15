@@ -4,33 +4,36 @@ import { RosterMember } from "@/lib/supabase";
 
 const CSV_URL = "https://docs.google.com/spreadsheets/d/1E_tIWj0bcgdLBf5bdDCjH3nMhxUtO73TNlRW2CwSIkk/export?format=csv&gid=2065550040";
 
-// Same skip list as the Apps Script so we ignore header/divider rows
-const SKIP_ROWS = new Set([1,2,3,4,5,6,7,8,9,10,11,12,18,25,37,47,147,247,347,480,532,584,636,664]);
-
-// Sheet column header (lowercase, whitespace-normalized) → RosterMember field name
+// Sheet column header (lowercase, whitespace-normalized) → RosterMember field name.
+// Rows with blank name+rank are skipped automatically — no hardcoded row list needed.
 // May = current month → april_* fields (what the table displays as "current")
 // April = previous month → march_* fields
+// Both straight (') and curly (') apostrophes are included for "Hour's"
 const HEADER_MAP: Record<string, string> = {
-  "name":                   "name",
-  "rank":                   "rank",
-  "website id":             "badge_number",
-  "callsign":               "callsign",
-  "assignment":             "division",
-  "activity status":        "status",
-  "date of membership":     "joined_date",
-  "phone number":           "phone_number",
-  "patrol last seen":       "patrol_last_seen",
-  "admin last seen":        "admin_last_seen",
+  "name":                    "name",
+  "rank":                    "rank",
+  "website id":              "badge_number",
+  "callsign":                "callsign",
+  "assignment":              "division",
+  "activity status":         "status",
+  "date of membership":      "joined_date",
+  "phone number":            "phone_number",
+  "patrol last seen":        "patrol_last_seen",
+  "admin last seen":         "admin_last_seen",
   // Current month (May)
-  "may total activity":     "april_total_activity",
-  "may patrol hour's":      "april_patrol_hours",
-  "may admin hour's":       "april_admin_hours",
-  "may patrol logs":        "april_patrol_logs",
+  "may total activity":      "april_total_activity",
+  "may patrol hour's":       "april_patrol_hours",
+  "may patrol hour’s":  "april_patrol_hours",
+  "may admin hour's":        "april_admin_hours",
+  "may admin hour’s":   "april_admin_hours",
+  "may patrol logs":         "april_patrol_logs",
   // Previous month (April)
-  "april total activity":   "march_total_activity",
-  "april patrol hour's":    "march_patrol_hours",
-  "april admin hour's":     "march_admin_hours",
-  "april patrol logs":      "march_patrol_logs",
+  "april total activity":    "march_total_activity",
+  "april patrol hour's":     "march_patrol_hours",
+  "april patrol hour’s":"march_patrol_hours",
+  "april admin hour's":      "march_admin_hours",
+  "april admin hour’s": "march_admin_hours",
+  "april patrol logs":       "march_patrol_logs",
 };
 
 function parseCSV(text: string): string[][] {
@@ -95,15 +98,12 @@ async function getRoster(): Promise<RosterMember[]> {
     };
 
     return rows.slice(headerIdx + 1).flatMap((row, i) => {
-      const rowNum = headerIdx + i + 2; // 1-based sheet row number
-      if (SKIP_ROWS.has(rowNum)) return [];
-
       const name = get(row, "name");
       const rank = get(row, "rank");
-      if (!name || !rank) return [];
+      if (!name || !rank) return []; // skip blank/divider rows
 
       return [{
-        id:                   get(row, "badge_number") ?? String(rowNum),
+        id:                   get(row, "badge_number") ?? String(headerIdx + i + 2),
         name,
         rank,
         badge_number:         get(row, "badge_number"),
@@ -115,14 +115,14 @@ async function getRoster(): Promise<RosterMember[]> {
         phone_number:         get(row, "phone_number"),
         patrol_last_seen:     get(row, "patrol_last_seen"),
         admin_last_seen:      get(row, "admin_last_seen"),
-        april_total_activity: null,
-        april_patrol_hours:   null,
-        april_admin_hours:    null,
-        april_patrol_logs:    null,
-        march_total_activity: null,
-        march_patrol_hours:   null,
-        march_admin_hours:    null,
-        march_patrol_logs:    null,
+        april_total_activity: get(row, "april_total_activity"),
+        april_patrol_hours:   get(row, "april_patrol_hours"),
+        april_admin_hours:    get(row, "april_admin_hours"),
+        april_patrol_logs:    get(row, "april_patrol_logs"),
+        march_total_activity: get(row, "march_total_activity"),
+        march_patrol_hours:   get(row, "march_patrol_hours"),
+        march_admin_hours:    get(row, "march_admin_hours"),
+        march_patrol_logs:    get(row, "march_patrol_logs"),
         updated_at:           new Date().toISOString(),
       } satisfies RosterMember];
     });

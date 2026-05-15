@@ -211,7 +211,7 @@ export function RosterGSClient({ roster }: { roster: RosterMember[] }) {
         </div>
 
         <div className="relative z-10 grid roster-cols gap-3 px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-panel-alt)]">
-          {["ID","NAME","CALLSIGN","RANK","ASSIGNMENT","JOINED","PHONE","STATUS","ACTIVITY","PATROL HRS","ADMIN HRS","LOGS"].map(h => (
+          {["ID","NAME","CALLSIGN","RANK","ASSIGNMENT","JOINED","PHONE","STATUS","MAY ACT","MAY PAT","MAY ADM","MAY LOGS","APR ACT","APR PAT","APR ADM","APR LOGS","PATROL SEEN","ADMIN SEEN"].map(h => (
             <span key={h} className="font-display text-[9px] tracking-widest text-[var(--text-muted)] uppercase">{h}</span>
           ))}
         </div>
@@ -239,7 +239,13 @@ export function RosterGSClient({ roster }: { roster: RosterMember[] }) {
                   <span className="font-mono text-xs text-[var(--text-secondary)]">{m.april_total_activity ?? "—"}</span>
                   <span className="font-mono text-xs text-[var(--text-secondary)]">{m.april_patrol_hours ?? "—"}</span>
                   <span className="font-mono text-xs text-[var(--text-secondary)]">{m.april_admin_hours ?? "—"}</span>
-                  <span className="font-mono text-xs text-[var(--text-secondary)] text-center">{m.april_patrol_logs ?? "—"}</span>
+                  <span className="font-mono text-xs text-[var(--text-secondary)]">{m.april_patrol_logs ?? "—"}</span>
+                  <span className="font-mono text-xs text-[var(--text-secondary)]">{m.march_total_activity ?? "—"}</span>
+                  <span className="font-mono text-xs text-[var(--text-secondary)]">{m.march_patrol_hours ?? "—"}</span>
+                  <span className="font-mono text-xs text-[var(--text-secondary)]">{m.march_admin_hours ?? "—"}</span>
+                  <span className="font-mono text-xs text-[var(--text-secondary)]">{m.march_patrol_logs ?? "—"}</span>
+                  <span className="font-mono text-xs text-[var(--text-secondary)]">{m.patrol_last_seen ?? "—"}</span>
+                  <span className="font-mono text-xs text-[var(--text-secondary)]">{m.admin_last_seen ?? "—"}</span>
                 </div>
               ))}
             </div>
@@ -249,7 +255,7 @@ export function RosterGSClient({ roster }: { roster: RosterMember[] }) {
 
       <style>{`
         .roster-cols {
-          grid-template-columns: 60px 160px 90px 180px 1fr 100px 130px 80px 80px 80px 80px 48px;
+          grid-template-columns: 60px 160px 90px 180px 1fr 100px 130px 80px 75px 75px 75px 48px 75px 75px 75px 48px 100px 100px;
         }
       `}</style>
     </div>
