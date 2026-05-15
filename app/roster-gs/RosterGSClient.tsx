@@ -15,7 +15,7 @@ const RANK_TIERS = [
   },
   {
     key: "staff", label: "Staff", color: "text-blue-400",
-    ranks: ["Sergeant", "Staff Sergeant"],
+    ranks: ["Sergeant", "Staff Sergeant", "Corporal"],
   },
   {
     key: "deputy", label: "Deputies", color: "text-[var(--text-secondary)]",
@@ -42,19 +42,20 @@ const RANK_ORDER: Record<string, number> = {
   // Staff
   "Sergeant":            8,
   "Staff Sergeant":      9,
+  "Corporal":            10,
   // Deputies — seniority order
-  "Senior Deputy":            10,
-  "Detective":                11,
-  "Master Deputy":            12,
-  "Deputy II":                13,
-  "Deputy I":                 14,
-  "Patrol Deputy":            15,
-  "Deputy":                   16,
-  "Senior Reserve Deputy":    17,
-  "Reserve Deputy":           18,
-  "Probationary Deputy":      19,
-  "Probationary Reserve Deputy": 20,
-  "Honorary Deputy":          21,
+  "Senior Deputy":            11,
+  "Detective":                12,
+  "Master Deputy":            13,
+  "Deputy II":                14,
+  "Deputy I":                 15,
+  "Patrol Deputy":            16,
+  "Deputy":                   17,
+  "Senior Reserve Deputy":    18,
+  "Reserve Deputy":           19,
+  "Probationary Deputy":      20,
+  "Probationary Reserve Deputy": 21,
+  "Honorary Deputy":          22,
 };
 
 function tierKey(rank: string) {
@@ -82,7 +83,10 @@ function sortRoster(members: RosterMember[]) {
   });
 }
 
-export function RosterGSClient({ roster }: { roster: RosterMember[] }) {
+export function RosterGSClient({ roster, colLabels }: {
+  roster: RosterMember[];
+  colLabels: string[];
+}) {
   const [search, setSearch]         = useState("");
   const [tierFilter, setTierFilter] = useState("all");
 
@@ -210,13 +214,14 @@ export function RosterGSClient({ roster }: { roster: RosterMember[] }) {
           </div>
         </div>
 
-        <div className="relative z-10 grid roster-cols gap-3 px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-panel-alt)]">
-          {["ID","NAME","CALLSIGN","RANK","ASSIGNMENT","JOINED","PHONE","STATUS","MAY ACT","MAY PAT","MAY ADM","MAY LOGS","APR ACT","APR PAT","APR ADM","APR LOGS","PATROL SEEN","ADMIN SEEN"].map(h => (
-            <span key={h} className="font-display text-[9px] tracking-widest text-[var(--text-muted)] uppercase">{h}</span>
-          ))}
-        </div>
+        <div className="relative z-10 min-w-max">
+          <div className="grid roster-cols gap-3 px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-panel-alt)]">
+            {colLabels.map((h, i) => (
+              <span key={i} className="font-display text-[9px] tracking-widest text-[var(--text-muted)] uppercase">{h}</span>
+            ))}
+          </div>
 
-        <div className="relative z-10">
+          <div>
           {grouped.length === 0 ? (
             <div className="py-16 text-center text-[var(--text-muted)] font-display text-sm tracking-wider">No personnel match your search.</div>
           ) : grouped.map(({ tier, members }) => (
@@ -245,17 +250,17 @@ export function RosterGSClient({ roster }: { roster: RosterMember[] }) {
                   <span className="font-mono text-xs text-[var(--text-secondary)]">{m.march_admin_hours ?? "—"}</span>
                   <span className="font-mono text-xs text-[var(--text-secondary)]">{m.march_patrol_logs ?? "—"}</span>
                   <span className="font-mono text-xs text-[var(--text-secondary)]">{m.patrol_last_seen ?? "—"}</span>
-                  <span className="font-mono text-xs text-[var(--text-secondary)]">{m.admin_last_seen ?? "—"}</span>
                 </div>
               ))}
             </div>
           ))}
+          </div>
         </div>
       </div>
 
       <style>{`
         .roster-cols {
-          grid-template-columns: 60px 160px 90px 180px 1fr 100px 130px 80px 75px 75px 75px 48px 75px 75px 75px 48px 100px 100px;
+          grid-template-columns: 60px 160px 90px 180px 150px 100px 130px 80px 75px 75px 75px 48px 75px 75px 75px 48px 100px;
         }
       `}</style>
     </div>

@@ -4,37 +4,35 @@ import { RosterMember } from "@/lib/supabase";
 
 const CSV_URL = "https://docs.google.com/spreadsheets/d/1E_tIWj0bcgdLBf5bdDCjH3nMhxUtO73TNlRW2CwSIkk/export?format=csv&gid=2065550040";
 
-// Sheet column header (lowercase, whitespace-normalized) → RosterMember field name.
-// Rows with blank name+rank are skipped automatically — no hardcoded row list needed.
-// May = current month → april_* fields (what the table displays as "current")
-// April = previous month → march_* fields
-// Both straight (') and curly (') apostrophes are included for "Hour's"
-const HEADER_MAP: Record<string, string> = {
-  "name":                    "name",
-  "rank":                    "rank",
-  "website id":              "badge_number",
-  "callsign":                "callsign",
-  "assignment":              "division",
-  "activity status":         "status",
-  "date of membership":      "joined_date",
-  "phone number":            "phone_number",
-  "patrol last seen":        "patrol_last_seen",
-  "admin last seen":         "admin_last_seen",
-  // Current month (May)
-  "may total activity":      "april_total_activity",
-  "may patrol hour's":       "april_patrol_hours",
-  "may patrol hour’s":  "april_patrol_hours",
-  "may admin hour's":        "april_admin_hours",
-  "may admin hour’s":   "april_admin_hours",
-  "may patrol logs":         "april_patrol_logs",
-  // Previous month (April)
-  "april total activity":    "march_total_activity",
-  "april patrol hour's":     "march_patrol_hours",
-  "april patrol hour’s":"march_patrol_hours",
-  "april admin hour's":      "march_admin_hours",
-  "april admin hour’s": "march_admin_hours",
-  "april patrol logs":       "march_patrol_logs",
+// Fixed 0-based column indices matching the sheet's column letters (C=2, D=3…).
+// If columns ever shift, only these numbers need updating.
+const COL = {
+  badge:       2,  // C  Website ID
+  name:        3,  // D  Name
+  callsign:    4,  // E  Callsign
+  rank:        5,  // F  Rank
+  division:    6,  // G  Assignment
+  joined:      7,  // H  Date of Membership
+  phone:       8,  // I  Phone Number
+  status:      10, // K  Activity Status
+  curr_act:    11, // L  Current month – Total Activity
+  curr_pat:    12, // M  Current month – Patrol Hours
+  curr_adm:    13, // N  Current month – Admin Hours
+  curr_logs:   14, // O  Current month – Patrol Logs
+  prev_act:    15, // P  Previous month – Total Activity
+  prev_pat:    16, // Q  Previous month – Patrol Hours
+  prev_adm:    17, // R  Previous month – Admin Hours
+  prev_logs:   18, // S  Previous month – Patrol Logs
+  patrol_seen: 19, // T  Patrol Last Seen
 };
+
+const FALLBACK_LABELS = [
+  "Website ID", "Name", "Callsign", "Rank", "Assignment",
+  "Date of Membership", "Phone Number", "Activity Status",
+  "Total Activity", "Patrol Hour's", "Admin Hour's", "Patrol Logs",
+  "Total Activity", "Patrol Hour's", "Admin Hour's", "Patrol Logs",
+  "Patrol Last Seen",
+];
 
 function parseCSV(text: string): string[][] {
   const rows: string[][] = [];
@@ -69,69 +67,88 @@ function normalizeStatus(raw: string): "Active" | "Inactive" | "LOA" {
   return "Active";
 }
 
-async function getRoster(): Promise<RosterMember[]> {
+function cell(row: string[], idx: number): string | null {
+  return row[idx]?.trim() || null;
+}
+
+async function getRoster(): Promise<{ roster: RosterMember[]; colLabels: string[] }> {
   try {
     const res = await fetch(CSV_URL, { cache: "no-store" });
-    if (!res.ok) return [];
+    if (!res.ok) return { roster: [], colLabels: FALLBACK_LABELS };
 
     const rows = parseCSV(await res.text()).filter(r => r.some(c => c.trim()));
 
-    // Find the first row that has both "Name" and "Rank" columns
+    // Find the header row (first row containing both "Name" and "Rank")
     let headerIdx = -1;
     for (let i = 0; i < Math.min(rows.length, 20); i++) {
       const lower = rows[i].map(c => c.toLowerCase().trim());
       if (lower.includes("name") && lower.includes("rank")) { headerIdx = i; break; }
     }
-    if (headerIdx === -1) return [];
+    if (headerIdx === -1) return { roster: [], colLabels: FALLBACK_LABELS };
 
-    // Build field → column-index lookup
-    const colOf: Record<string, number> = {};
-    rows[headerIdx].forEach((h, i) => {
-      const key = h.replace(/\s+/g, " ").trim().toLowerCase();
-      const field = HEADER_MAP[key];
-      if (field) colOf[field] = i;
-    });
+    // Read exact header text from the sheet — normalise whitespace/newlines.
+    // This means column labels (including month names) update automatically.
+    const h = rows[headerIdx];
+    const lbl = (idx: number, fb: string) =>
+      (h[idx] ?? "").replace(/\s+/g, " ").trim() || fb;
 
-    const get = (row: string[], field: string) => {
-      const idx = colOf[field];
-      return idx !== undefined ? (row[idx]?.trim() || null) : null;
-    };
+    const colLabels = [
+      lbl(COL.badge,       "Website ID"),
+      lbl(COL.name,        "Name"),
+      lbl(COL.callsign,    "Callsign"),
+      lbl(COL.rank,        "Rank"),
+      lbl(COL.division,    "Assignment"),
+      lbl(COL.joined,      "Date of Membership"),
+      lbl(COL.phone,       "Phone Number"),
+      lbl(COL.status,      "Activity Status"),
+      lbl(COL.curr_act,    "Total Activity"),
+      lbl(COL.curr_pat,    "Patrol Hour's"),
+      lbl(COL.curr_adm,    "Admin Hour's"),
+      lbl(COL.curr_logs,   "Patrol Logs"),
+      lbl(COL.prev_act,    "Total Activity"),
+      lbl(COL.prev_pat,    "Patrol Hour's"),
+      lbl(COL.prev_adm,    "Admin Hour's"),
+      lbl(COL.prev_logs,   "Patrol Logs"),
+      lbl(COL.patrol_seen, "Patrol Last Seen"),
+    ];
 
-    return rows.slice(headerIdx + 1).flatMap((row, i) => {
-      const name = get(row, "name");
-      const rank = get(row, "rank");
-      if (!name || !rank) return []; // skip blank/divider rows
+    const roster: RosterMember[] = rows.slice(headerIdx + 1).flatMap((row, i) => {
+      const name = cell(row, COL.name);
+      const rank = cell(row, COL.rank);
+      if (!name || !rank) return [];
 
       return [{
-        id:                   get(row, "badge_number") ?? String(headerIdx + i + 2),
+        id:                   cell(row, COL.badge) ?? String(headerIdx + i + 2),
         name,
         rank,
-        badge_number:         get(row, "badge_number"),
-        callsign:             get(row, "callsign"),
-        division:             get(row, "division"),
-        status:               normalizeStatus(get(row, "status") ?? ""),
+        badge_number:         cell(row, COL.badge),
+        callsign:             cell(row, COL.callsign),
+        division:             cell(row, COL.division),
+        status:               normalizeStatus(cell(row, COL.status) ?? ""),
         avatar_url:           null,
-        joined_date:          get(row, "joined_date"),
-        phone_number:         get(row, "phone_number"),
-        patrol_last_seen:     get(row, "patrol_last_seen"),
-        admin_last_seen:      get(row, "admin_last_seen"),
-        april_total_activity: get(row, "april_total_activity"),
-        april_patrol_hours:   get(row, "april_patrol_hours"),
-        april_admin_hours:    get(row, "april_admin_hours"),
-        april_patrol_logs:    get(row, "april_patrol_logs"),
-        march_total_activity: get(row, "march_total_activity"),
-        march_patrol_hours:   get(row, "march_patrol_hours"),
-        march_admin_hours:    get(row, "march_admin_hours"),
-        march_patrol_logs:    get(row, "march_patrol_logs"),
+        joined_date:          cell(row, COL.joined),
+        phone_number:         cell(row, COL.phone),
+        patrol_last_seen:     cell(row, COL.patrol_seen),
+        admin_last_seen:      null,
+        april_total_activity: cell(row, COL.curr_act),
+        april_patrol_hours:   cell(row, COL.curr_pat),
+        april_admin_hours:    cell(row, COL.curr_adm),
+        april_patrol_logs:    cell(row, COL.curr_logs),
+        march_total_activity: cell(row, COL.prev_act),
+        march_patrol_hours:   cell(row, COL.prev_pat),
+        march_admin_hours:    cell(row, COL.prev_adm),
+        march_patrol_logs:    cell(row, COL.prev_logs),
         updated_at:           new Date().toISOString(),
       } satisfies RosterMember];
     });
+
+    return { roster, colLabels };
   } catch {
-    return [];
+    return { roster: [], colLabels: FALLBACK_LABELS };
   }
 }
 
 export default async function RosterGSPage() {
-  const roster = await getRoster();
-  return <RosterGSClient roster={roster} />;
+  const { roster, colLabels } = await getRoster();
+  return <RosterGSClient roster={roster} colLabels={colLabels} />;
 }
