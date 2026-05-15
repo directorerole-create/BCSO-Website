@@ -1,6 +1,6 @@
-import { PoliciesClient } from "@/app/policies/PoliciesClient";
-import { DEPT_POLICIES_DATA } from "@/lib/sop-data";
+import { DeptPoliciesClient } from "./DeptPoliciesClient";
+import { DEPT_POLICIES } from "@/lib/dept-policies-data";
 
 export default function DepartmentPoliciesPage() {
-  return <PoliciesClient sections={DEPT_POLICIES_DATA} />;
+  return <DeptPoliciesClient policies={DEPT_POLICIES} />;
 }
