@@ -12,145 +12,142 @@ export type CommandMember = {
   status: "Active" | "Inactive" | "LOA";
 };
 
-const RANK_CONFIG: Record<string, { color: string; hex: string; order: number; tier: string }> = {
-  "Head Administration": { color: "text-yellow-400",  hex: "#facc15", order: 1, tier: "Executive Command" },
-  "Sheriff":             { color: "text-yellow-400",  hex: "#facc15", order: 2, tier: "Executive Command" },
-  "Undersheriff":        { color: "text-yellow-400",  hex: "#facc15", order: 3, tier: "Executive Command" },
-  "Chief Deputy":        { color: "text-orange-400",  hex: "#fb923c", order: 4, tier: "Command Staff"     },
-  "Colonel":             { color: "text-orange-400",  hex: "#fb923c", order: 5, tier: "Command Staff"     },
-  "Captain":             { color: "text-blue-400",    hex: "#60a5fa", order: 6, tier: "Senior Staff"      },
-  "Lieutenant":          { color: "text-blue-300",    hex: "#93c5fd", order: 7, tier: "Senior Staff"      },
+const RANK_ORDER: Record<string, number> = {
+  "Sheriff": 1, "Undersheriff": 2, "Chief Deputy": 3, "Colonel": 4,
+  "Captain": 5, "Lieutenant": 6,
 };
 
-const RANK_INSIGNIA: Record<string, string> = {
+const INSIGNIA: Record<string, string> = {
   "Sheriff":      "/3star.png",
   "Undersheriff": "/2star.png",
   "Chief Deputy": "/1star.png",
   "Colonel":      "/colonel.jpg",
 };
 
-const TIERS = [
-  { label: "Executive Command", key: ["Head Administration", "Sheriff", "Undersheriff"] },
-  { label: "Command Staff",     key: ["Chief Deputy", "Colonel"] },
-  { label: "Senior Staff",      key: ["Captain", "Lieutenant"] },
-];
-
-function statusDot(status: string) {
-  if (status === "Active")   return <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" /><span className="text-emerald-400 font-display text-[9px] tracking-widest uppercase">Active</span></span>;
-  if (status === "LOA")      return <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400" /><span className="text-yellow-400 font-display text-[9px] tracking-widest uppercase">Leave of Absence</span></span>;
-  return                            <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-gray-500" /><span className="text-gray-500 font-display text-[9px] tracking-widest uppercase">Inactive</span></span>;
-}
-
-function getInitials(name: string) {
+function initials(name: string) {
   return name.split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase();
 }
 
-function MemberCard({ m }: { m: CommandMember }) {
-  const cfg = RANK_CONFIG[m.rank] ?? RANK_CONFIG["Lieutenant"];
-  const insignia = RANK_INSIGNIA[m.rank];
+function StatusPill({ status }: { status: string }) {
+  if (status === "Active")
+    return <span className="text-[9px] font-display tracking-[0.3em] uppercase text-emerald-400">● Active</span>;
+  if (status === "LOA")
+    return <span className="text-[9px] font-display tracking-[0.3em] uppercase text-yellow-500">● Leave</span>;
+  return   <span className="text-[9px] font-display tracking-[0.3em] uppercase text-[var(--text-muted)]">● Inactive</span>;
+}
 
+// ── Card variants ────────────────────────────────────────────────────────────
+
+function ExecutiveCard({ m }: { m: CommandMember }) {
   return (
-    <div className="flex flex-col sm:flex-row bg-[var(--bg-panel)] border border-[var(--border)] rounded-lg overflow-hidden hover:border-[var(--badge)]/30 transition-colors">
-      {/* Left accent */}
-      <div className="w-full sm:w-1 h-1 sm:h-auto flex-shrink-0" style={{ background: cfg.hex }} />
+    <div className="flex items-stretch border border-[var(--border)] rounded bg-[var(--bg-panel)] overflow-hidden">
+      {/* Gold stripe */}
+      <div className="w-[3px] flex-shrink-0 bg-badge" />
 
-      {/* Avatar block */}
-      <div className="flex sm:flex-col items-center gap-4 sm:gap-3 px-5 py-4 sm:py-6 sm:w-28 flex-shrink-0 border-b sm:border-b-0 sm:border-r border-[var(--border)] bg-[var(--bg-panel-alt)]">
-        {/* Initials circle */}
-        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 flex items-center justify-center flex-shrink-0 bg-black/30"
-          style={{ borderColor: cfg.hex }}>
-          <span className="font-display font-black text-lg sm:text-xl" style={{ color: cfg.hex }}>
-            {getInitials(m.name)}
-          </span>
+      {/* Insignia */}
+      <div className="flex-shrink-0 flex flex-col items-center justify-center gap-2 px-5 py-5 border-r border-[var(--border)] bg-[var(--bg-panel-alt)] w-24">
+        <div className="w-12 h-12 rounded-full border border-[var(--badge)]/40 bg-black/30 flex items-center justify-center">
+          <span className="font-display font-black text-base text-badge">{initials(m.name)}</span>
         </div>
-
-        {/* Insignia */}
-        {insignia
-          ? <Image src={insignia} alt={m.rank} width={44} height={44} className="object-contain opacity-90" style={{ filter: "drop-shadow(0 0 4px rgba(201,162,39,0.5))" }} />
-          : <div className="w-11 h-11" />
-        }
-
-        {/* Callsign */}
-        {m.callsign && (
-          <span className="font-mono text-[10px] tracking-widest hidden sm:block text-center" style={{ color: `${cfg.hex}99` }}>
-            {m.callsign}
-          </span>
+        {INSIGNIA[m.rank] && (
+          <Image src={INSIGNIA[m.rank]} alt={m.rank} width={36} height={36}
+            className="object-contain opacity-80"
+            style={{ filter: "drop-shadow(0 0 3px rgba(201,162,39,0.5))" }} />
         )}
       </div>
 
-      {/* Main info */}
-      <div className="flex-1 px-5 sm:px-6 py-4 sm:py-5">
-        {/* Rank + tier label */}
-        <div className="flex items-center gap-2 mb-1">
-          <span className={`font-display text-[9px] tracking-[0.35em] uppercase font-semibold ${cfg.color}`}>
-            {m.rank}
-          </span>
-          <span className="text-[var(--border)]">·</span>
-          <span className="font-display text-[9px] tracking-[0.25em] uppercase text-[var(--text-muted)]">
-            {cfg.tier}
-          </span>
+      {/* Info */}
+      <div className="flex-1 px-6 py-4 flex flex-col justify-center">
+        <p className="font-display text-[8px] tracking-[0.5em] text-badge uppercase mb-0.5">{m.rank}</p>
+        <h2 className="font-display text-xl font-black text-[var(--text-primary)] tracking-tight">{m.name}</h2>
+        <p className="text-[var(--text-muted)] text-[11px] mt-1">{m.role}</p>
+        {m.division && <p className="text-[var(--text-muted)] text-[10px] mt-0.5 opacity-70">{m.division}</p>}
+      </div>
+
+      {/* Right meta */}
+      <div className="flex-shrink-0 flex flex-col items-end justify-between px-5 py-4 border-l border-[var(--border)]">
+        <span className="font-mono text-sm font-bold text-badge">{m.callsign ?? `#${m.badge_number}`}</span>
+        <StatusPill status={m.status} />
+      </div>
+    </div>
+  );
+}
+
+function OfficerCard({ m }: { m: CommandMember }) {
+  return (
+    <div className="flex items-stretch border border-[var(--border)] rounded bg-[var(--bg-panel)] overflow-hidden hover:border-[var(--badge)]/25 transition-colors">
+      <div className="w-[3px] flex-shrink-0 bg-[var(--badge)]/40" />
+
+      {/* Initials */}
+      <div className="flex-shrink-0 flex items-center justify-center px-4 border-r border-[var(--border)] bg-[var(--bg-panel-alt)] w-16">
+        <div className="w-9 h-9 rounded-full border border-[var(--badge)]/30 bg-black/30 flex items-center justify-center">
+          <span className="font-display font-black text-xs text-[var(--badge)]/80">{initials(m.name)}</span>
         </div>
+      </div>
 
-        {/* Name */}
-        <h3 className="font-display text-2xl font-black text-[var(--text-primary)] tracking-tight leading-none mb-3">
-          {m.name}
-        </h3>
+      {/* Info */}
+      <div className="flex-1 px-4 py-3">
+        <p className="font-display text-[8px] tracking-[0.4em] text-[var(--text-muted)] uppercase">{m.rank}</p>
+        <p className="font-display text-sm font-bold text-[var(--text-primary)] leading-tight">{m.name}</p>
+        {m.division && <p className="text-[var(--text-muted)] text-[10px] mt-0.5 truncate">{m.division}</p>}
+      </div>
 
-        {/* Divider */}
-        <div className="border-t border-[var(--border)] mb-3" />
+      {/* Right meta */}
+      <div className="flex-shrink-0 flex flex-col items-end justify-between px-4 py-3 border-l border-[var(--border)]">
+        <span className="font-mono text-xs text-[var(--badge)]/80">{m.callsign ?? `#${m.badge_number}`}</span>
+        <StatusPill status={m.status} />
+      </div>
+    </div>
+  );
+}
 
-        {/* Detail rows */}
-        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1.5 text-sm">
-          <div className="flex items-baseline gap-2">
-            <dt className="font-display text-[8px] tracking-[0.35em] text-[var(--text-muted)] uppercase w-20 flex-shrink-0">Title</dt>
-            <dd className="text-[var(--text-secondary)] text-xs">{m.role}</dd>
-          </div>
-          {m.division && (
-            <div className="flex items-baseline gap-2">
-              <dt className="font-display text-[8px] tracking-[0.35em] text-[var(--text-muted)] uppercase w-20 flex-shrink-0">Bureau</dt>
-              <dd className="text-[var(--text-secondary)] text-xs">{m.division}</dd>
-            </div>
-          )}
-          {m.badge_number && (
-            <div className="flex items-baseline gap-2">
-              <dt className="font-display text-[8px] tracking-[0.35em] text-[var(--text-muted)] uppercase w-20 flex-shrink-0">Website ID</dt>
-              <dd className="font-mono text-xs" style={{ color: cfg.hex }}>#{m.badge_number}</dd>
-            </div>
-          )}
-          {m.callsign && (
-            <div className="flex items-baseline gap-2 sm:hidden">
-              <dt className="font-display text-[8px] tracking-[0.35em] text-[var(--text-muted)] uppercase w-20 flex-shrink-0">Callsign</dt>
-              <dd className="font-mono text-xs" style={{ color: cfg.hex }}>{m.callsign}</dd>
-            </div>
-          )}
-        </dl>
+// ── Hierarchy connector helpers ──────────────────────────────────────────────
 
-        {/* Status */}
-        <div className="mt-3 pt-2.5 border-t border-[var(--border)]">
-          {statusDot(m.status)}
+function VLine() {
+  return <div className="flex justify-center py-0"><div className="w-px h-8 bg-[var(--badge)]/30" /></div>;
+}
+
+function BranchLine({ count }: { count: number }) {
+  if (count <= 1) return <VLine />;
+  return (
+    <div className="flex justify-center py-0">
+      <div className="flex flex-col items-center">
+        <div className="w-px h-4 bg-[var(--badge)]/30" />
+        <div className="w-3/4 h-px bg-[var(--badge)]/30" />
+        <div className="w-full flex justify-between px-[12.5%]">
+          {Array.from({ length: count }).map((_, i) => (
+            <div key={i} className="w-px h-4 bg-[var(--badge)]/30" />
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
+// ── Main client component ────────────────────────────────────────────────────
+
 export function StaffClient({ staff }: { staff: CommandMember[] }) {
   const sorted = [...staff].sort((a, b) =>
-    (RANK_CONFIG[a.rank]?.order ?? 99) - (RANK_CONFIG[b.rank]?.order ?? 99)
+    (RANK_ORDER[a.rank] ?? 99) - (RANK_ORDER[b.rank] ?? 99)
   );
+
+  const exec    = sorted.filter(m => ["Sheriff","Undersheriff"].includes(m.rank));
+  const command = sorted.filter(m => ["Chief Deputy","Colonel"].includes(m.rank));
+  const captains   = sorted.filter(m => m.rank === "Captain");
+  const lieutenants = sorted.filter(m => m.rank === "Lieutenant");
 
   const activeCount = staff.filter(m => m.status === "Active").length;
 
   return (
     <div className="min-h-screen pb-20">
       {/* Page header */}
-      <div className="px-6 sm:px-8 pt-8 pb-6 border-b border-[var(--border)]">
+      <div className="px-6 sm:px-10 pt-8 pb-6 border-b border-[var(--border)]">
         <div className="flex items-center gap-5">
-          <Image src="/BCSOBadge.png" alt="BCSO" width={52} height={52}
-            style={{ filter: "drop-shadow(0 0 12px rgba(201,162,39,0.5))" }} />
+          <Image src="/BCSOBadge.png" alt="BCSO" width={48} height={48}
+            style={{ filter: "drop-shadow(0 0 10px rgba(201,162,39,0.4))" }} />
           <div>
             <span className="font-display text-[9px] tracking-[0.5em] text-badge uppercase block mb-1">Department Portal</span>
-            <h1 className="font-display text-3xl font-black text-primary-color tracking-tight">COMMAND STAFF</h1>
+            <h1 className="font-display text-2xl sm:text-3xl font-black text-primary-color tracking-tight">CHAIN OF COMMAND</h1>
             <p className="text-[var(--text-secondary)] text-sm mt-0.5">
               Blaine County Sheriff&apos;s Office &mdash; <span className="text-emerald-400">{activeCount} active</span> of {staff.length} command personnel
             </p>
@@ -158,33 +155,85 @@ export function StaffClient({ staff }: { staff: CommandMember[] }) {
         </div>
       </div>
 
-      {/* Tiers */}
-      <div className="max-w-4xl mx-auto px-6 sm:px-8 py-10 space-y-12">
-        {TIERS.map(tier => {
-          const members = sorted.filter(m => tier.key.includes(m.rank));
-          if (members.length === 0) return null;
+      {/* Hierarchy */}
+      <div className="max-w-2xl mx-auto px-6 sm:px-10 pt-10 pb-16">
 
-          const cfg = RANK_CONFIG[tier.key[0]];
-
-          return (
-            <section key={tier.label}>
-              {/* Tier divider */}
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-px flex-1 bg-[var(--border)]" />
-                <span className="font-display text-[9px] tracking-[0.4em] uppercase px-3 py-1 rounded border"
-                  style={{ color: cfg.hex, borderColor: `${cfg.hex}40`, background: `${cfg.hex}08` }}>
-                  {tier.label}
-                </span>
-                <div className="h-px flex-1 bg-[var(--border)]" />
+        {/* Executive (Sheriff + Undersheriff) — stacked, full width */}
+        {exec.length > 0 && (
+          <div className="space-y-0">
+            {exec.map((m, i) => (
+              <div key={m.id}>
+                <ExecutiveCard m={m} />
+                {/* Connector below, unless last exec item has no one beneath */}
+                {(i < exec.length - 1 || command.length > 0 || captains.length > 0) && <VLine />}
               </div>
+            ))}
+          </div>
+        )}
 
-              {/* Cards — 1 col for exec, 2 col for others */}
-              <div className={`grid gap-4 ${tier.label === "Executive Command" ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-2"}`}>
-                {members.map(m => <MemberCard key={m.id} m={m} />)}
+        {/* Command Staff (Chief Deputy / Colonel) */}
+        {command.length > 0 && (
+          <>
+            <div className="space-y-0">
+              {command.map((m, i) => (
+                <div key={m.id}>
+                  <ExecutiveCard m={m} />
+                  {(i < command.length - 1 || captains.length > 0 || lieutenants.length > 0) && <VLine />}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Captains */}
+        {captains.length > 0 && (
+          <>
+            {captains.length > 1 && (
+              <div className="flex justify-center pb-0">
+                <div className="flex flex-col items-center w-full">
+                  <div className="w-px h-4 bg-[var(--badge)]/30" />
+                  <div className="relative w-full flex items-start justify-center">
+                    <div className="absolute top-0 left-1/4 right-1/4 h-px bg-[var(--badge)]/30" style={{ left: `${100 / (captains.length * 2)}%`, right: `${100 / (captains.length * 2)}%` }} />
+                    <div className="w-full flex justify-around">
+                      {captains.map(c => (
+                        <div key={c.id} className="w-px h-4 bg-[var(--badge)]/30" />
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </section>
-          );
-        })}
+            )}
+            {captains.length === 1 && <VLine />}
+
+            <div className={`grid gap-3 ${captains.length >= 3 ? "grid-cols-3" : captains.length === 2 ? "grid-cols-2" : "grid-cols-1"}`}>
+              {captains.map(m => <OfficerCard key={m.id} m={m} />)}
+            </div>
+
+            {lieutenants.length > 0 && <VLine />}
+          </>
+        )}
+
+        {/* Lieutenants */}
+        {lieutenants.length > 0 && (
+          <>
+            {lieutenants.length > 1 && (
+              <div className="flex justify-center pb-0">
+                <div className="flex flex-col items-center w-full">
+                  <div className="w-px h-4 bg-[var(--badge)]/30" />
+                  <div className="w-full flex justify-around">
+                    {lieutenants.map(l => (
+                      <div key={l.id} className="w-px h-4 bg-[var(--badge)]/30" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            {lieutenants.length === 1 && <VLine />}
+            <div className={`grid gap-3 ${lieutenants.length >= 3 ? "grid-cols-3" : lieutenants.length === 2 ? "grid-cols-2" : "grid-cols-1"}`}>
+              {lieutenants.map(m => <OfficerCard key={m.id} m={m} />)}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
