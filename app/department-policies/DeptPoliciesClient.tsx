@@ -111,7 +111,7 @@ function PolicyDocument({ policy }: { policy: DeptPolicy }) {
   );
 }
 
-export function DeptPoliciesClient({ policies, source }: { policies: DeptPolicy[]; source?: "live" | "offline" }) {
+export function DeptPoliciesClient({ policies }: { policies: DeptPolicy[] }) {
   const [activeId, setActiveId]   = useState(policies[0]?.id ?? "");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -162,18 +162,8 @@ export function DeptPoliciesClient({ policies, source }: { policies: DeptPolicy[
           Department Portal
         </span>
         <div className="flex items-start justify-between gap-3">
-          <h1 className="font-display text-xl sm:text-3xl font-bold text-primary-color tracking-tight flex items-center gap-3">
+          <h1 className="font-display text-xl sm:text-3xl font-bold text-primary-color tracking-tight">
             DEPARTMENT POLICIES
-            {source === "live" && (
-              <span className="text-[9px] font-display tracking-[0.3em] uppercase text-emerald-400 font-semibold flex items-center gap-1 mt-1 flex-shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />Live
-              </span>
-            )}
-            {source === "offline" && (
-              <span className="text-[9px] font-display tracking-[0.3em] uppercase text-red-400 font-semibold flex items-center gap-1 mt-1 flex-shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />Offline
-              </span>
-            )}
           </h1>
           <button onClick={() => setDrawerOpen(true)}
             className="md:hidden flex items-center gap-1.5 font-display text-[9px] tracking-widest uppercase px-3 py-2 rounded border border-[var(--border)] text-[var(--text-muted)] hover:text-badge hover:border-badge/50 transition-colors flex-shrink-0 mt-1">
