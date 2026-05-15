@@ -30,17 +30,22 @@ function stripTags(html: string): string {
 
 function parseDocToPolicies(html: string): DeptPolicy[] {
   const body = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1] ?? html;
+  const tokens = body.split(/(<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>)/gi);
+
   const policies: DeptPolicy[] = [];
 
-  let current: (DeptPolicy & { _policyLevel: number }) | null = null;
+  // State
+  let addPoliciesLevel = -1;   // heading level of the "Additional Policies" H1
+  let policyLevel      = -1;   // heading level of each individual policy title
+  let currentPolicy: (DeptPolicy & { _level: number }) | null = null;
   let currentSection: { heading: string; body: string } | null = null;
   let contentBuffer = "";
   let policyIdx = 0;
 
   function flushSection() {
-    if (currentSection && current) {
+    if (currentSection && currentPolicy) {
       currentSection.body = contentBuffer.trim();
-      if (currentSection.heading) current.sections.push({ ...currentSection });
+      if (currentSection.heading) currentPolicy.sections.push({ ...currentSection });
     }
     currentSection = null;
     contentBuffer = "";
@@ -48,69 +53,156 @@ function parseDocToPolicies(html: string): DeptPolicy[] {
 
   function flushPolicy() {
     flushSection();
-    if (current && current.sections.length > 0) {
-      const { _policyLevel: _, ...policy } = current;
+    if (currentPolicy && currentPolicy.sections.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { _level, ...policy } = currentPolicy;
       policies.push(policy);
     }
-    current = null;
+    currentPolicy = null;
   }
-
-  const tokens = body.split(/(<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>)/gi);
 
   for (const token of tokens) {
     const hm = token.match(/^<h([1-6])[^>]*>([\s\S]*?)<\/h\1>$/i);
+
     if (hm) {
       const level = parseInt(hm[1]);
       const raw   = stripTags(hm[2]).trim();
       if (!raw) continue;
 
-      // Detect any heading that starts with BCSO (e.g. "BCSO.001 Vehicle Pursuit Policy")
-      const bcsoMatch = raw.match(/^(BCSO\.?\d+)\s*[-–—]?\s*(.*)/i);
+      // ── Find the "Additional Policies" parent heading ──────────────────
+      if (addPoliciesLevel === -1) {
+        if (/additional\s+polic|additional\s+direct|department\s+polic|bcso\s+polic/i.test(raw)) {
+          addPoliciesLevel = level;
+          policyLevel      = level + 1; // policies are one level below
+        }
+        continue;
+      }
 
-      if (bcsoMatch) {
+      // ── Back out to same/higher level → done ───────────────────────────
+      if (level <= addPoliciesLevel) {
+        flushPolicy();
+        break;
+      }
+
+      // ── Policy title heading ────────────────────────────────────────────
+      if (level === policyLevel) {
         flushPolicy();
         policyIdx++;
-        const num    = bcsoMatch[1].toUpperCase().replace(/^BCSO(\d)/, "BCSO.$1");
-        const title  = bcsoMatch[2].trim() || num;
-        const docNum = num.replace(/(\d+)$/, n => n.padStart(4, "0"));
-
-        current = {
+        currentPolicy = {
           id:            `bcso-live-${policyIdx}`,
-          number:        num,
-          docNumber:     docNum,
-          title,
+          number:        `BCSO.${policyIdx.toString().padStart(3, "0")}`,
+          docNumber:     `BCSO.${policyIdx.toString().padStart(4, "0")}`,
+          title:         raw,
           effectiveDate: "",
           lastUpdated:   "",
           sections:      [],
-          _policyLevel:  level,
+          _level:        level,
         };
-      } else if (current && level > current._policyLevel) {
-        // Sub-heading within this policy → becomes a section
+        continue;
+      }
+
+      // ── Section heading within a policy ────────────────────────────────
+      if (currentPolicy && level > policyLevel) {
         flushSection();
         currentSection = { heading: raw, body: "" };
-      } else if (current && level <= current._policyLevel) {
-        // Same or higher level heading outside BCSO → end of policies
-        flushPolicy();
+        continue;
       }
-    } else if (current) {
+
+    } else if (addPoliciesLevel !== -1 && currentPolicy) {
+      // Content block — metadata or section body
       const text = htmlToText(token).trim();
       if (!text) continue;
 
       if (currentSection) {
         contentBuffer += (contentBuffer ? "\n\n" : "") + text;
       } else {
-        // Metadata block before first sub-heading — extract dates
-        const eff = text.match(/Effective\s+Date[:\s]+([^\n]+)/i);
-        const upd = text.match(/Last\s+Updated[:\s]+([^\n]+)/i);
-        const dir = text.match(/Directive\s+Number[:\s]+([^\n]+)/i);
-        if (eff) current.effectiveDate = eff[1].trim();
-        if (upd) current.lastUpdated   = upd[1].trim();
-        if (dir) current.docNumber     = dir[1].trim();
+        // Try to pull directive metadata from body text before the first section heading
+        const dir = text.match(/Directive\s*(?:No\.?|Number)[:\s]+([^\n,]+)/i);
+        const eff = text.match(/Effective\s*Date[:\s]+([^\n,]+)/i);
+        const upd = text.match(/Last\s*Updated[:\s]+([^\n,]+)/i);
+        const bcso = text.match(/BCSO\.?(\d+)/i);
+
+        if (dir)  currentPolicy.docNumber     = dir[1].trim();
+        if (eff)  currentPolicy.effectiveDate = eff[1].trim();
+        if (upd)  currentPolicy.lastUpdated   = upd[1].trim();
+        if (bcso) {
+          const n = bcso[1];
+          currentPolicy.number   = `BCSO.${n.padStart(3, "0")}`;
+          currentPolicy.docNumber = `BCSO.${n.padStart(4, "0")}`;
+          currentPolicy.id       = `bcso-live-${n}`;
+        }
       }
     }
   }
 
   flushPolicy();
+
+  // ── Fallback: if no "Additional Policies" heading was found,
+  //    try matching any heading that directly starts with BCSO ─────────────
+  if (policies.length === 0) {
+    let current2: (DeptPolicy & { _level: number }) | null = null;
+    let section2: { heading: string; body: string } | null = null;
+    let buf2 = "";
+    let idx2 = 0;
+
+    function flush2s() {
+      if (section2 && current2) {
+        section2.body = buf2.trim();
+        if (section2.heading) current2.sections.push({ ...section2 });
+      }
+      section2 = null;
+      buf2 = "";
+    }
+    function flush2p() {
+      flush2s();
+      if (current2 && current2.sections.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { _level, ...p } = current2;
+        policies.push(p);
+      }
+      current2 = null;
+    }
+
+    for (const token of tokens) {
+      const hm = token.match(/^<h([1-6])[^>]*>([\s\S]*?)<\/h\1>$/i);
+      if (hm) {
+        const level = parseInt(hm[1]);
+        const raw   = stripTags(hm[2]).trim();
+        if (!raw) continue;
+
+        if (/^BCSO/i.test(raw)) {
+          flush2p();
+          idx2++;
+          const title = raw.replace(/^BCSO\.?\d*\s*[-–—]?\s*/i, "").trim() || raw;
+          current2 = {
+            id: `bcso-fb-${idx2}`, number: `BCSO.${idx2.toString().padStart(3,"0")}`,
+            docNumber: `BCSO.${idx2.toString().padStart(4,"0")}`, title,
+            effectiveDate: "", lastUpdated: "", sections: [], _level: level,
+          };
+        } else if (current2 && level > current2._level) {
+          flush2s();
+          section2 = { heading: raw, body: "" };
+        } else if (current2 && level <= current2._level) {
+          flush2p();
+        }
+      } else if (current2) {
+        const text = htmlToText(token).trim();
+        if (!text) continue;
+        if (section2) {
+          buf2 += (buf2 ? "\n\n" : "") + text;
+        } else {
+          const bcso = text.match(/BCSO\.?(\d+)/i);
+          const eff  = text.match(/Effective\s*Date[:\s]+([^\n,]+)/i);
+          const upd  = text.match(/Last\s*Updated[:\s]+([^\n,]+)/i);
+          if (bcso) { const n = bcso[1]; current2.number = `BCSO.${n.padStart(3,"0")}`; current2.docNumber = `BCSO.${n.padStart(4,"0")}`; }
+          if (eff)  current2.effectiveDate = eff[1].trim();
+          if (upd)  current2.lastUpdated   = upd[1].trim();
+        }
+      }
+    }
+    flush2p();
+  }
+
   return policies;
 }
 
