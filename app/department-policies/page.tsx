@@ -34,18 +34,24 @@ function parseDocToPolicies(html: string): DeptPolicy[] {
 
   const policies: DeptPolicy[] = [];
 
-  // State
-  let addPoliciesLevel = -1;   // heading level of the "Additional Policies" H1
-  let policyLevel      = -1;   // heading level of each individual policy title
+  // Phase tracking
+  let inPolicies = false;
+  let sopH1Level = 1;
+  let romanCount = 0;         // how many Roman-numeral H1s we've seen
+  let parentLevel = -1;
+  let policyLevel = -1;
+  let sectionLevel = -1;
+
   let currentPolicy: (DeptPolicy & { _level: number }) | null = null;
   let currentSection: { heading: string; body: string } | null = null;
   let contentBuffer = "";
+  let preContentBuffer = "";  // content before first section heading
   let policyIdx = 0;
 
   function flushSection() {
     if (currentSection && currentPolicy) {
       currentSection.body = contentBuffer.trim();
-      if (currentSection.heading) currentPolicy.sections.push({ ...currentSection });
+      if (currentSection.body) currentPolicy.sections.push({ ...currentSection });
     }
     currentSection = null;
     contentBuffer = "";
@@ -53,12 +59,19 @@ function parseDocToPolicies(html: string): DeptPolicy[] {
 
   function flushPolicy() {
     flushSection();
-    if (currentPolicy && currentPolicy.sections.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { _level, ...policy } = currentPolicy;
-      policies.push(policy);
+    if (currentPolicy) {
+      // If there are no H3 sections but we accumulated pre-section content, use it
+      if (currentPolicy.sections.length === 0 && preContentBuffer.trim()) {
+        currentPolicy.sections.push({ heading: "Policy Details", body: preContentBuffer.trim() });
+      }
+      if (currentPolicy.sections.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { _level, ...policy } = currentPolicy;
+        policies.push(policy);
+      }
     }
     currentPolicy = null;
+    preContentBuffer = "";
   }
 
   for (const token of tokens) {
@@ -69,57 +82,91 @@ function parseDocToPolicies(html: string): DeptPolicy[] {
       const raw   = stripTags(hm[2]).trim();
       if (!raw) continue;
 
-      // ── Find the "Additional Policies" parent heading ──────────────────
-      if (addPoliciesLevel === -1) {
-        if (/additional\s+polic|additional\s+direct|department\s+polic|bcso\s+polic/i.test(raw)) {
-          addPoliciesLevel = level;
-          policyLevel      = level + 1; // policies are one level below
+      const numMatch = raw.match(/^([IVXivx]+\.?|\d+(?:\.\d+)?\.?|[A-Z]{2,6}\.?)\s+(.+)$/);
+      const num = numMatch ? numMatch[1].replace(/\.$/, "") : "";
+      const isRomanNumeral = /^[IVX]+$/i.test(num);
+
+      if (!inPolicies) {
+        // Track SOP sections (Roman numeral H1s)
+        if (isRomanNumeral && level === 1) {
+          romanCount++;
+          sopH1Level = level;
+          continue;
+        }
+
+        // Detect the additional policies parent heading:
+        // 1. Explicit text patterns
+        const isExplicit = /additional\s*polic|additional\s*direct|bcso\s*(polic|direct)|department\s*polic|supplement|appendix/i.test(raw);
+        // 2. Non-Roman-numeral H1 after we've seen at least 3 Roman numeral sections
+        const isPostRoman = romanCount >= 3 && level <= sopH1Level && !isRomanNumeral;
+
+        if (isExplicit || isPostRoman) {
+          inPolicies = true;
+          parentLevel = level;
+          policyLevel = level + 1;
+          sectionLevel = level + 2;
         }
         continue;
       }
 
-      // ── Back out to same/higher level → done ───────────────────────────
-      if (level <= addPoliciesLevel) {
-        flushPolicy();
-        break;
+      // ── Inside the policies section ────────────────────────────────────
+      {
+        // Back to same or higher level → done with policies
+        if (level <= parentLevel) {
+          flushPolicy();
+          break;
+        }
+
+        // Policy title heading
+        if (level === policyLevel) {
+          flushPolicy();
+          policyIdx++;
+          const bcsoMatch = raw.match(/BCSO\.?(\d+)/i);
+          const n = bcsoMatch ? bcsoMatch[1] : policyIdx.toString();
+          const title = raw.replace(/^BCSO\.?\d+\s*[-–—]?\s*/i, "").trim() || raw;
+          currentPolicy = {
+            id:            `bcso-live-${n}`,
+            number:        `BCSO.${n.padStart(3, "0")}`,
+            docNumber:     `BCSO.${n.padStart(4, "0")}`,
+            title,
+            effectiveDate: "",
+            lastUpdated:   "",
+            sections:      [],
+            _level:        level,
+          };
+          continue;
+        }
+
+        // Section heading within a policy
+        if (currentPolicy && level === sectionLevel) {
+          flushSection();
+          currentSection = { heading: raw, body: "" };
+          continue;
+        }
+
+        // Deeper-than-section headings → append as bold text to current section
+        if (currentPolicy && level > sectionLevel && currentSection) {
+          contentBuffer += (contentBuffer ? "\n\n" : "") + `**${raw}**`;
+          continue;
+        }
       }
 
-      // ── Policy title heading ────────────────────────────────────────────
-      if (level === policyLevel) {
-        flushPolicy();
-        policyIdx++;
-        currentPolicy = {
-          id:            `bcso-live-${policyIdx}`,
-          number:        `BCSO.${policyIdx.toString().padStart(3, "0")}`,
-          docNumber:     `BCSO.${policyIdx.toString().padStart(4, "0")}`,
-          title:         raw,
-          effectiveDate: "",
-          lastUpdated:   "",
-          sections:      [],
-          _level:        level,
-        };
-        continue;
-      }
+    } else {
+      // Non-heading content block
+      if (!inPolicies || !currentPolicy) continue;
 
-      // ── Section heading within a policy ────────────────────────────────
-      if (currentPolicy && level > policyLevel) {
-        flushSection();
-        currentSection = { heading: raw, body: "" };
-        continue;
-      }
-
-    } else if (addPoliciesLevel !== -1 && currentPolicy) {
-      // Content block — metadata or section body
       const text = htmlToText(token).trim();
       if (!text) continue;
 
       if (currentSection) {
         contentBuffer += (contentBuffer ? "\n\n" : "") + text;
       } else {
-        // Try to pull directive metadata from body text before the first section heading
-        const dir = text.match(/Directive\s*(?:No\.?|Number)[:\s]+([^\n,]+)/i);
-        const eff = text.match(/Effective\s*Date[:\s]+([^\n,]+)/i);
-        const upd = text.match(/Last\s*Updated[:\s]+([^\n,]+)/i);
+        // Content before the first section heading — extract metadata + accumulate
+        preContentBuffer += (preContentBuffer ? "\n\n" : "") + text;
+
+        const dir  = text.match(/Directive\s*(?:No\.?|Number)[:\s]+([^\n,]+)/i);
+        const eff  = text.match(/Effective\s*Date[:\s]+([^\n,]+)/i);
+        const upd  = text.match(/(?:Last\s*Updated|Revised)[:\s]+([^\n,]+)/i);
         const bcso = text.match(/BCSO\.?(\d+)/i);
 
         if (dir)  currentPolicy.docNumber     = dir[1].trim();
@@ -137,30 +184,36 @@ function parseDocToPolicies(html: string): DeptPolicy[] {
 
   flushPolicy();
 
-  // ── Fallback: if no "Additional Policies" heading was found,
-  //    try matching any heading that directly starts with BCSO ─────────────
+  // ── Fallback: scan for headings that start with BCSO ──────────────────────
   if (policies.length === 0) {
     let current2: (DeptPolicy & { _level: number }) | null = null;
     let section2: { heading: string; body: string } | null = null;
     let buf2 = "";
+    let preBuf2 = "";
     let idx2 = 0;
 
     function flush2s() {
       if (section2 && current2) {
         section2.body = buf2.trim();
-        if (section2.heading) current2.sections.push({ ...section2 });
+        if (section2.body) current2.sections.push({ ...section2 });
       }
       section2 = null;
       buf2 = "";
     }
     function flush2p() {
       flush2s();
-      if (current2 && current2.sections.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { _level, ...p } = current2;
-        policies.push(p);
+      if (current2) {
+        if (current2.sections.length === 0 && preBuf2.trim()) {
+          current2.sections.push({ heading: "Policy Details", body: preBuf2.trim() });
+        }
+        if (current2.sections.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { _level, ...p } = current2;
+          policies.push(p);
+        }
       }
       current2 = null;
+      preBuf2 = "";
     }
 
     for (const token of tokens) {
@@ -170,13 +223,15 @@ function parseDocToPolicies(html: string): DeptPolicy[] {
         const raw   = stripTags(hm[2]).trim();
         if (!raw) continue;
 
-        if (/^BCSO/i.test(raw)) {
+        if (/^BCSO/i.test(raw) || /\bBCSO\.?\d+/i.test(raw)) {
           flush2p();
           idx2++;
-          const title = raw.replace(/^BCSO\.?\d*\s*[-–—]?\s*/i, "").trim() || raw;
+          const title = raw.replace(/^BCSO\.?\d+\s*[-–—]?\s*/i, "").trim() || raw;
+          const bcsoM = raw.match(/BCSO\.?(\d+)/i);
+          const n = bcsoM ? bcsoM[1] : idx2.toString();
           current2 = {
-            id: `bcso-fb-${idx2}`, number: `BCSO.${idx2.toString().padStart(3,"0")}`,
-            docNumber: `BCSO.${idx2.toString().padStart(4,"0")}`, title,
+            id: `bcso-fb-${n}`, number: `BCSO.${n.padStart(3, "0")}`,
+            docNumber: `BCSO.${n.padStart(4, "0")}`, title,
             effectiveDate: "", lastUpdated: "", sections: [], _level: level,
           };
         } else if (current2 && level > current2._level) {
@@ -191,9 +246,10 @@ function parseDocToPolicies(html: string): DeptPolicy[] {
         if (section2) {
           buf2 += (buf2 ? "\n\n" : "") + text;
         } else {
+          preBuf2 += (preBuf2 ? "\n\n" : "") + text;
           const bcso = text.match(/BCSO\.?(\d+)/i);
           const eff  = text.match(/Effective\s*Date[:\s]+([^\n,]+)/i);
-          const upd  = text.match(/Last\s*Updated[:\s]+([^\n,]+)/i);
+          const upd  = text.match(/(?:Last\s*Updated|Revised)[:\s]+([^\n,]+)/i);
           if (bcso) { const n = bcso[1]; current2.number = `BCSO.${n.padStart(3,"0")}`; current2.docNumber = `BCSO.${n.padStart(4,"0")}`; }
           if (eff)  current2.effectiveDate = eff[1].trim();
           if (upd)  current2.lastUpdated   = upd[1].trim();
