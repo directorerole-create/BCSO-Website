@@ -5,34 +5,73 @@ import { RosterMember } from "@/lib/supabase";
 import Image from "next/image";
 
 const RANK_TIERS = [
-  { key: "admin",   label: "Administration", color: "text-yellow-400", ranks: ["Sheriff","Undersheriff","Chief Deputy","Colonel"] },
-  { key: "senior",  label: "Senior Staff",   color: "text-orange-400", ranks: ["Captain","Lieutenant"] },
-  { key: "staff",   label: "Staff",          color: "text-blue-400",   ranks: ["Sergeant","Staff Sergeant"] },
-  { key: "deputy",  label: "Deputies",       color: "text-[var(--text-secondary)]", ranks: ["Senior Deputy","Deputy","Patrol Deputy","Probationary Deputy","Detective"] },
+  {
+    key: "admin", label: "Administration", color: "text-yellow-400",
+    ranks: ["Head Administration", "Sheriff", "Undersheriff", "Chief Deputy", "Colonel"],
+  },
+  {
+    key: "senior", label: "Senior Staff", color: "text-orange-400",
+    ranks: ["Captain", "Lieutenant"],
+  },
+  {
+    key: "staff", label: "Staff", color: "text-blue-400",
+    ranks: ["Sergeant", "Staff Sergeant", "Corporal"],
+  },
+  {
+    key: "deputy", label: "Deputies", color: "text-[var(--text-secondary)]",
+    ranks: [
+      "Senior Deputy", "Detective", "Master Deputy",
+      "Deputy II", "Deputy I", "Patrol Deputy", "Deputy",
+      "Senior Reserve Deputy", "Reserve Deputy",
+      "Probationary Deputy", "Probationary Reserve Deputy",
+      "Honorary Deputy",
+    ],
+  },
 ];
 
 const RANK_ORDER: Record<string, number> = {
-  "Sheriff": 1, "Undersheriff": 2, "Chief Deputy": 3, "Colonel": 4,
-  "Captain": 5, "Lieutenant": 6,
-  "Sergeant": 7, "Staff Sergeant": 8,
-  "Senior Deputy": 9, "Detective": 10, "Patrol Deputy": 11,
-  "Deputy": 12, "Probationary Deputy": 13,
+  "Head Administration": 1,
+  "Sheriff":             2,
+  "Undersheriff":        3,
+  "Chief Deputy":        4,
+  "Colonel":             5,
+  "Captain":             6,
+  "Lieutenant":          7,
+  "Sergeant":            8,
+  "Staff Sergeant":      9,
+  "Corporal":            10,
+  "Senior Deputy":            11,
+  "Detective":                12,
+  "Master Deputy":            13,
+  "Deputy II":                14,
+  "Deputy I":                 15,
+  "Patrol Deputy":            16,
+  "Deputy":                   17,
+  "Senior Reserve Deputy":    18,
+  "Reserve Deputy":           19,
+  "Probationary Deputy":      20,
+  "Probationary Reserve Deputy": 21,
+  "Honorary Deputy":          22,
 };
 
-function tierKey(rank: string): string {
+function tierKey(rank: string) {
   return RANK_TIERS.find(t => t.ranks.includes(rank))?.key ?? "deputy";
 }
 
-function rankColor(rank: string): string {
-  return RANK_TIERS.find(t => t.ranks.includes(rank))?.color ?? "text-badge";
+function rankColor(rank: string) {
+  return RANK_TIERS.find(t => t.ranks.includes(rank))?.color ?? "text-[var(--text-secondary)]";
 }
 
 function StatusBadge({ status }: { status: string }) {
   const cls = status === "Active" ? "status-active" : status === "LOA" ? "status-loa" : "status-inactive";
-  return <span className={`text-[10px] font-display tracking-wider uppercase px-2 py-0.5 rounded font-medium ${cls}`}>{status}</span>;
+  return (
+    <span className={`text-[10px] font-display tracking-wider uppercase px-2 py-0.5 rounded font-medium ${cls}`}>
+      {status}
+    </span>
+  );
 }
 
-function sortRoster(members: RosterMember[]): RosterMember[] {
+function sortRoster(members: RosterMember[]) {
   return [...members].sort((a, b) => {
     const ro = (RANK_ORDER[a.rank] ?? 99) - (RANK_ORDER[b.rank] ?? 99);
     if (ro !== 0) return ro;
@@ -40,8 +79,11 @@ function sortRoster(members: RosterMember[]): RosterMember[] {
   });
 }
 
-export function RosterClient({ roster }: { roster: RosterMember[] }) {
-  const [search, setSearch]       = useState("");
+export function RosterClient({ roster, colLabels }: {
+  roster: RosterMember[];
+  colLabels: string[];
+}) {
+  const [search, setSearch]         = useState("");
   const [tierFilter, setTierFilter] = useState("all");
 
   const activeCount = roster.filter(m => m.status === "Active").length;
@@ -67,7 +109,6 @@ export function RosterClient({ roster }: { roster: RosterMember[] }) {
     ));
   }, [roster, tierFilter, search]);
 
-  // Group by tier for display
   const grouped = useMemo(() => {
     if (tierFilter !== "all") {
       const tier = RANK_TIERS.find(t => t.key === tierFilter);
@@ -92,9 +133,8 @@ export function RosterClient({ roster }: { roster: RosterMember[] }) {
         </p>
       </div>
 
-      {/* Filters row */}
+      {/* Filters */}
       <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 mb-5">
-        {/* Tier filter tabs — scrollable on mobile */}
         <div className="flex items-center gap-1 panel px-2 py-1.5 overflow-x-auto">
           <button
             onClick={() => setTierFilter("all")}
@@ -117,7 +157,6 @@ export function RosterClient({ roster }: { roster: RosterMember[] }) {
           ))}
         </div>
 
-        {/* Search */}
         <div className="relative w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
           <input type="text" placeholder="Search name, rank, callsign..."
@@ -130,7 +169,7 @@ export function RosterClient({ roster }: { roster: RosterMember[] }) {
         </div>
       </div>
 
-      {/* Mobile card view */}
+      {/* Mobile cards */}
       <div className="sm:hidden space-y-3">
         {grouped.length === 0 ? (
           <div className="panel py-12 text-center text-[var(--text-muted)] font-display text-sm tracking-wider">
@@ -164,51 +203,60 @@ export function RosterClient({ roster }: { roster: RosterMember[] }) {
       </div>
 
       {/* Desktop table */}
-      <div className="hidden sm:block panel overflow-x-auto relative">
+      <div className="hidden sm:block panel overflow-x-auto overflow-y-auto relative" style={{ maxHeight: "calc(100vh - 180px)" }}>
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] z-0">
           <div className="relative w-72 h-72">
             <Image src="/BCSOBadge.png" alt="" fill className="object-contain" />
           </div>
         </div>
 
-        <div className="relative z-10 grid roster-cols gap-3 px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-panel-alt)]">
-          {["ID","NAME","CALLSIGN","RANK","ASSIGNMENT","JOINED","PHONE","STATUS","ACTIVITY","PATROL HRS","ADMIN HRS","LOGS"].map(h => (
-            <span key={h} className="font-display text-[9px] tracking-widest text-[var(--text-muted)] uppercase">{h}</span>
-          ))}
-        </div>
+        <div className="relative z-10 min-w-max">
+          <div className="sticky top-0 z-20 grid roster-cols gap-3 px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-panel-alt)]">
+            {colLabels.map((h, i) => (
+              <span key={i} className="font-display text-[9px] tracking-widest text-[var(--text-muted)] uppercase">{h}</span>
+            ))}
+          </div>
 
-        <div className="relative z-10">
-          {grouped.length === 0 ? (
-            <div className="py-16 text-center text-[var(--text-muted)] font-display text-sm tracking-wider">No personnel match your search.</div>
-          ) : grouped.map(({ tier, members }) => (
-            <div key={tier.key}>
-              <div className="px-4 py-1.5 border-b border-[var(--border)] bg-[var(--bg-panel-alt)]/50">
-                <span className={`font-display text-[9px] tracking-[0.3em] uppercase font-semibold ${tier.color}`}>{tier.label} &mdash; {members.length}</span>
-              </div>
-              {members.map(m => (
-                <div key={m.id} className="grid roster-cols gap-3 px-4 py-2.5 hover:bg-[var(--badge)]/5 transition-colors text-sm border-b border-[var(--border)]/40 last:border-0">
-                  <span className="font-mono text-xs text-[var(--text-muted)]">{m.badge_number ?? "—"}</span>
-                  <span className="font-semibold text-[var(--text-primary)] truncate">{m.name}</span>
-                  <span className={`font-mono text-xs font-bold ${rankColor(m.rank)}`}>{m.callsign ?? "—"}</span>
-                  <span className={`font-display text-xs tracking-wide font-semibold ${rankColor(m.rank)}`}>{m.rank}</span>
-                  <span className="text-[var(--text-secondary)] text-xs truncate">{m.division ?? "—"}</span>
-                  <span className="text-[var(--text-muted)] text-xs">{m.joined_date ? new Date(m.joined_date).toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric" }) : "—"}</span>
-                  <span className="text-[var(--text-muted)] text-xs">{m.phone_number ?? "—"}</span>
-                  <StatusBadge status={m.status} />
-                  <span className="font-mono text-xs text-[var(--text-secondary)]">{m.april_total_activity ?? "—"}</span>
-                  <span className="font-mono text-xs text-[var(--text-secondary)]">{m.april_patrol_hours ?? "—"}</span>
-                  <span className="font-mono text-xs text-[var(--text-secondary)]">{m.april_admin_hours ?? "—"}</span>
-                  <span className="font-mono text-xs text-[var(--text-secondary)] text-center">{m.april_patrol_logs ?? "—"}</span>
+          <div>
+            {grouped.length === 0 ? (
+              <div className="py-16 text-center text-[var(--text-muted)] font-display text-sm tracking-wider">No personnel match your search.</div>
+            ) : grouped.map(({ tier, members }) => (
+              <div key={tier.key}>
+                <div className="px-4 py-1.5 border-b border-[var(--border)] bg-[var(--bg-panel-alt)]/50">
+                  <span className={`font-display text-[9px] tracking-[0.3em] uppercase font-semibold ${tier.color}`}>{tier.label} &mdash; {members.length}</span>
                 </div>
-              ))}
-            </div>
-          ))}
+                {members.map(m => (
+                  <div key={m.id} className="grid roster-cols gap-3 px-4 py-2.5 hover:bg-[var(--badge)]/5 transition-colors text-sm border-b border-[var(--border)]/40 last:border-0">
+                    <span className="font-mono text-xs text-[var(--text-muted)]">{m.badge_number ?? "—"}</span>
+                    <span className="font-semibold text-[var(--text-primary)] truncate">{m.name}</span>
+                    <span className={`font-mono text-xs font-bold ${rankColor(m.rank)}`}>{m.callsign ?? "—"}</span>
+                    <span className={`font-display text-xs tracking-wide font-semibold ${rankColor(m.rank)}`}>{m.rank}</span>
+                    <span className="text-[var(--text-secondary)] text-xs truncate">{m.division ?? "—"}</span>
+                    <span className="text-[var(--text-muted)] text-xs">
+                      {m.joined_date ? new Date(m.joined_date).toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric" }) : "—"}
+                    </span>
+                    <span className="text-[var(--text-muted)] text-xs">{m.phone_number ?? "—"}</span>
+                    <StatusBadge status={m.status} />
+                    <span className="font-mono text-xs text-[var(--text-secondary)]">{m.april_total_activity ?? "—"}</span>
+                    <span className="font-mono text-xs text-[var(--text-secondary)]">{m.april_patrol_hours ?? "—"}</span>
+                    <span className="font-mono text-xs text-[var(--text-secondary)]">{m.april_admin_hours ?? "—"}</span>
+                    <span className="font-mono text-xs text-[var(--text-secondary)]">{m.april_patrol_logs ?? "—"}</span>
+                    <span className="font-mono text-xs text-[var(--text-secondary)]">{m.march_total_activity ?? "—"}</span>
+                    <span className="font-mono text-xs text-[var(--text-secondary)]">{m.march_patrol_hours ?? "—"}</span>
+                    <span className="font-mono text-xs text-[var(--text-secondary)]">{m.march_admin_hours ?? "—"}</span>
+                    <span className="font-mono text-xs text-[var(--text-secondary)]">{m.march_patrol_logs ?? "—"}</span>
+                    <span className="font-mono text-xs text-[var(--text-secondary)]">{m.patrol_last_seen ?? "—"}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       <style>{`
         .roster-cols {
-          grid-template-columns: 48px 140px 72px 140px 1fr 90px 110px 80px 80px 80px 80px 48px;
+          grid-template-columns: 60px 160px 90px 180px 150px 100px 130px 80px 75px 75px 75px 48px 75px 75px 75px 48px 100px;
         }
       `}</style>
     </div>

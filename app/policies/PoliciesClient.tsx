@@ -43,9 +43,9 @@ function SubsectionView({ sub }: { sub: SopSubsection }) {
   );
 }
 
-type Props = { sections: SopSection[] };
+type Props = { sections: SopSection[]; source: "live" | "offline" };
 
-export function PoliciesClient({ sections }: Props) {
+export function PoliciesClient({ sections, source }: Props) {
   const [search, setSearch] = useState("");
   const [activeSectionId, setActiveSectionId] = useState(sections[0]?.id ?? "");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set([sections[0]?.id ?? ""]));
@@ -163,6 +163,14 @@ export function PoliciesClient({ sections }: Props) {
           <h1 className="font-display text-xl sm:text-3xl font-bold text-primary-color tracking-tight flex items-center gap-2 sm:gap-3">
             <BookOpen className="w-5 h-5 sm:w-7 sm:h-7 text-badge flex-shrink-0" strokeWidth={1.5} />
             <span>STANDARD OPERATING PROCEDURES</span>
+            {source === "live"
+              ? <span className="text-[9px] font-display tracking-[0.3em] uppercase text-emerald-400 font-semibold flex items-center gap-1 mt-1 flex-shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />Live
+                </span>
+              : <span className="text-[9px] font-display tracking-[0.3em] uppercase text-red-400 font-semibold flex items-center gap-1 mt-1 flex-shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />Offline
+                </span>
+            }
           </h1>
           {/* Mobile TOC toggle */}
           <button

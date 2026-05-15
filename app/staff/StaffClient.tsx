@@ -18,8 +18,6 @@ const RANK_ORDER: Record<string, number> = {
 };
 
 const INSIGNIA: Record<string, string> = {
-  "Sheriff":      "/3star.png",
-  "Undersheriff": "/2star.png",
   "Chief Deputy": "/1star.png",
   "Colonel":      "/colonel.jpg",
 };
