@@ -77,12 +77,82 @@ A pursuit report shall be submitted within three (3) days of completion, regardl
     number: "BCSO.002",
     docNumber: "BCSO.0002",
     title: "Suspect Detention & Arrest Policy",
-    effectiveDate: "10/17/2025",
+    effectiveDate: "12/06/2025",
     lastUpdated: "02/21/2026",
     sections: [
-      { heading: "Purpose", body: "This policy establishes standards for the lawful detention and arrest of suspects by members of the Blaine County Sheriff's Office, ensuring all actions are consistent with constitutional requirements and departmental standards." },
-      { heading: "Policy", body: "All detentions and arrests shall be conducted with lawful authority. Deputies shall identify themselves and clearly state the reason for detention when reasonably safe to do so. Handcuffing is authorized upon arrest or when officer safety requires it during a detention." },
-      { heading: "Procedures", body: "Deputies shall document all arrests in a timely report submitted to the Incident Review channel within three (3) days. Transport of detained persons shall follow department vehicle and safety standards." },
+      {
+        heading: "Purpose",
+        body: `The purpose of this policy is to establish clear and legally sound guidelines for arrests, detentions, hand restraint procedures, and protective custody actions conducted by deputies of the Blaine County Sheriff's Office. This policy ensures enforcement actions are carried out safely, professionally, and in compliance with applicable laws and constitutional standards.
+
+It also promotes consistent decision-making, proper documentation, and accountability, while prioritizing the safety of deputies, subjects, and the public and ensuring fair treatment of all individuals encountered.`,
+      },
+      {
+        heading: "Definitions",
+        body: `**Arrest** — The lawful taking of a person into custody based on probable cause or other legal authority for the purpose of charging them with a criminal offense.
+
+**Detention** — The temporary restriction of a person's freedom of movement for investigative or safety purposes. A detention does not always constitute an arrest and may or may not involve the use of hand restraints.
+
+**Probable Cause** — Facts and circumstances within a deputy's knowledge that would lead a reasonable person to believe that a crime has been committed and that the subject committed it.
+
+**Hand Restraints** — Mechanical devices, including handcuffs, used to restrict a subject's movement for officer safety and scene control. Subjects shall not be secured to patrol vehicles, push bars, or fixed objects.
+
+**Custodial Search** — A lawful search of a detained or arrested subject's person and possessions conducted to locate weapons, contraband, or evidence.
+
+**Proactive Custody (5150 Hold)** — The involuntary detention of a person for up to 72 hours due to a qualifying mental health condition when the individual is a danger to themselves, a danger to others, or gravely disabled.
+
+**Gravely Disabled** — A condition in which a person, due to mental illness, is unable to provide for their basic personal needs for food, clothing, or shelter.
+
+**Waiver of Rights** — The advice provided to a subject in custody informing them of their constitutional rights prior to interrogation.
+
+**Use of Force** — The level of physical control applied by a deputy that is objectively reasonable and necessary to effect an arrest, prevent escape, or ensure safety.`,
+      },
+      {
+        heading: "Directive",
+        body: `Deputies of the Blaine County Sheriff's Office are authorized to make arrests when lawful authority exists and shall do so based on probable cause or other legal justification. All arrests and detentions shall be conducted in a professional, lawful, and safe manner, using only the level of force reasonably necessary to effect the arrest and ensure the safety of deputies, subjects, and the public.
+
+Deputies shall evaluate each situation based on the totality of the circumstances. Detention without lawful cause may result in legal liability and disciplinary action.
+
+**Arrest Authority & Decision-Making**
+Prior to effecting an arrest or placing a subject in restraints, deputies shall consider:
+- Was the subject the primary offender?
+- What does the penal code authorize? Is arrest permissible for the offense?
+- Would a citation and release suffice?
+- How is the subject acting? Are they cooperative, evasive, or a safety risk?
+
+Not every detention requires arrest or placement in a patrol vehicle. Deputies shall exercise sound judgment and treat each situation on a case-by-case basis while prioritizing safety. If uncertain about probable cause or arrest authority, deputies shall consult a supervisor prior to proceeding.
+
+**Hand Restraint & Custodial Procedures**
+When a deputy determines a subject shall be placed in hand restraints, the following procedures shall be followed:
+- Instruct the subject to step away from the deputy and, if able, place their hands out to their sides.
+- Apply hand restraints. Subjects shall never be cuffed to a patrol vehicle, push bar, or fixed object.
+- Conduct a custodial search of the subject's person and possessions.
+- Place the subject in the rear of the patrol vehicle for safekeeping when appropriate.
+- Inventory and properly bag any items located on the subject as evidence.
+- Advise the subject of their waiver of rights prior to continuing the arrest or interrogation process.
+
+While escorting a handcuffed subject, deputies shall maintain physical control of the individual and utilize the /grab technique.
+
+**Scene Detention & Holding**
+All subjects involved in an incident who require detention may be handcuffed and secured in the rear of an available patrol vehicle for safety and scene control. Not all detentions require hand restraints. Deputies shall assess subject behavior, body language, threat level, and overall scene dynamics before determining whether restraints are necessary. Deputies may temporarily detain a subject without handcuffs when appropriate to safely complete the investigation.
+
+If further investigation or questioning is required beyond the scope of the scene, the subject shall be transported to a Sheriff's Office or other appropriate police facility to continue the formal interrogation or arrest process.
+
+**Protective Custody — 5150 Mental Health Detentions**
+Deputies are authorized to detain individuals for their own safety or the safety of the public when legal criteria are met under the 5150 statute. A 5150 hold permits involuntary detention for up to 72 hours when a person, due to a mental illness or severe mental episode, meets at least one of the following criteria:
+- Is a danger to others
+- Is a danger to themselves
+- Is gravely disabled
+
+If a Patrol Deputy upholds a 5150 detention, San Andreas Fire Rescue (SAFR) personnel shall be requested to evaluate the subject's medical condition. SAFR shall assist with appropriate medical clearance and transport to a local medical facility when required. Deputies shall clearly articulate the basis for the hold in all reports.
+
+**Arrest Completion & Documentation**
+Deputies shall:
+- Inform arrested individuals of the reason for their arrest when practical.
+- Secure any weapons, contraband, or evidence.
+- Properly document all arrests, detentions, searches, and protective custody holds in the CAD system and any required departmental reports.
+
+All interactions shall reflect professionalism and respect. Failure to comply with this policy may result in corrective or disciplinary action.`,
+      },
     ],
   },
   {
