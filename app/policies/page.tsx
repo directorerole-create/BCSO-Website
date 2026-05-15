@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import { PoliciesClient } from "./PoliciesClient";
-import { SopSection, SOP_DATA } from "@/lib/sop-data";
+import { SopSection, SOP_SECTIONS } from "@/lib/sop-data";
 
 const DOC_ID  = "1cLsB7Xgt_2VUI64OdvdFvHLHRBfAZF_FjuS3vrX3p1U";
 const DOC_URL = `https://docs.google.com/document/d/${DOC_ID}/export?format=html`;
@@ -130,15 +130,15 @@ function parseDocToSections(html: string): SopSection[] {
 async function getSop(): Promise<{ sections: SopSection[]; source: "live" | "offline" }> {
   try {
     const res = await fetch(DOC_URL, { cache: "no-store" });
-    if (!res.ok) return { sections: SOP_DATA, source: "offline" };
+    if (!res.ok) return { sections: SOP_SECTIONS, source: "offline" };
 
     const html     = await res.text();
     const sections = parseDocToSections(html);
 
     if (sections.length > 2) return { sections, source: "live" };
-    return { sections: SOP_DATA, source: "offline" };
+    return { sections: SOP_SECTIONS, source: "offline" };
   } catch {
-    return { sections: SOP_DATA, source: "offline" };
+    return { sections: SOP_SECTIONS, source: "offline" };
   }
 }
 

@@ -947,3 +947,21 @@ Filing a false, frivolous, or bad-faith appeal may result in additional discipli
     ],
   },
 ];
+
+// SOP sections only (I–XI), excluding the additional policies appendix
+export const SOP_SECTIONS: SopSection[] = SOP_DATA.filter(s => s.id !== "section-add");
+
+// Each additional policy becomes its own top-level section for sidebar navigation
+export const DEPT_POLICIES_DATA: SopSection[] = (
+  SOP_DATA.find(s => s.id === "section-add")?.subsections ?? []
+).map(sub => ({
+  id:    sub.id,
+  number: sub.number,
+  title:  sub.title,
+  subsections: [{
+    id:      `${sub.id}-body`,
+    number:  sub.number,
+    title:   "Policy Details",
+    content: sub.content,
+  }],
+}));

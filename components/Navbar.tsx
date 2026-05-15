@@ -10,7 +10,8 @@ import { PoliceLightBar } from "./PoliceLightBar";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/roster", label: "Roster" },
-  { href: "/policies", label: "Policies & SOPs" },
+  { href: "/policies",            label: "SOP Manual"      },
+  { href: "/department-policies", label: "Dept. Policies"  },
   { href: "/staff", label: "Meet the Staff" },
 ];
 

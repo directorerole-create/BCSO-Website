@@ -12,7 +12,8 @@ const NAV = [
     group: "Portal",
     items: [
       { href: "/",          icon: Home,          label: "Dashboard"        },
-      { href: "/policies",  icon: BookOpen,      label: "SOP Manual"       },
+      { href: "/policies",             icon: BookOpen, label: "SOP Manual"           },
+      { href: "/department-policies",  icon: BookOpen, label: "Dept. Policies"        },
       { href: "/roster",    icon: Users,         label: "Personnel Roster" },
       { href: "/staff",     icon: Star,          label: "Command Staff"    },
       { href: "/complaint", icon: AlertTriangle, label: "File a Complaint" },
