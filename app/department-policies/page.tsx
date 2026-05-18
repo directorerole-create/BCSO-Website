@@ -58,7 +58,7 @@ function stripTags(html: string): string {
 }
 
 const SECTION_NAME_RE = /^(purpose|scope|definitions?|directive|policy|procedures?|overview|authorization|background|introduction)\s*$/i;
-const ORG_NAME_RE = /^(blaine county|sheriff.?s office|bcso)\s*$/i;
+const ORG_NAME_RE = /^(blaine county|sheriff.?s office|bcso|table of contents?)\s*$/i;
 
 /** Parse a single policy tab's HTML into a DeptPolicy. */
 function parseTabToPolicy(html: string, fallbackIndex: number, fallbackName?: string): DeptPolicy | null {
@@ -165,19 +165,22 @@ function parseTabToPolicy(html: string, fallbackIndex: number, fallbackName?: st
 
   if (!title || sections.length === 0) return null;
 
-  // Build BCSO number, stripping leading zeros to normalise to 3 digits
+  // ID always uses tab position — guarantees uniqueness across all 12 policies
+  const posId = (fallbackIndex + 1).toString().padStart(3, "0");
+
+  // Display number from extracted docNumber if available, else fall back to position
   const numMatch = docNumber.match(/(\d+)/);
-  const raw3 = numMatch
+  const displayNum = numMatch
     ? (numMatch[1].replace(/^0+/, "") || "0").padStart(3, "0")
-    : (fallbackIndex + 1).toString().padStart(3, "0");
+    : posId;
 
   // Strip any leading "BCSO.NNN — " prefix that ended up in the title
   const cleanTitle = title.replace(/^BCSO\.?\d+\s*[-–—]?\s*/i, "").trim() || title;
 
   return {
-    id:            `bcso-live-${raw3}`,
-    number:        `BCSO.${raw3}`,
-    docNumber:     docNumber || `BCSO.${raw3.padStart(4, "0")}`,
+    id:            `bcso-live-${posId}`,
+    number:        `BCSO.${displayNum}`,
+    docNumber:     docNumber || `BCSO.${displayNum.padStart(4, "0")}`,
     title:         cleanTitle,
     effectiveDate,
     lastUpdated,
