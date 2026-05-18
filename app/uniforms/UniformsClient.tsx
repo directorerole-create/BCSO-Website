@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { ChevronDown, ExternalLink, AlertCircle } from "lucide-react";
+import { ChevronDown, ExternalLink } from "lucide-react";
+import type { AEData } from "./page";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -479,196 +480,49 @@ function GroomingSection() {
   );
 }
 
-// ── Vehicle data ──────────────────────────────────────────────────────────────
+// ── AE tab ────────────────────────────────────────────────────────────────────
 
-type VehicleLivery = { role: string; livery: string; minRank?: string };
-type VehicleDept = {
-  key: string;
-  label: string;
-  restrictions: string[];
-  liveries: VehicleLivery[];
-  sourceGid: string;
-};
-
-const VEHICLE_DEPTS: VehicleDept[] = [
-  {
-    key: "bcso",
-    label: "BCSO",
-    sourceGid: "1022938058",
-    restrictions: [
-      "Senior Deputy+ may use ALPRs (with TED active).",
-      "Wrap-Arounds are not permitted unless active as TED or Lieutenant+.",
-      "License plates: last 3–4 digits of callsign (e.g. 001 or 1000).",
-      "Camaros: max 2 (BC or LS patrol); 3 if AOP is Sandy Shores.",
-      "NO TURBO on any patrol vehicle.",
-      "Use /savevehicle to save your VMS configuration.",
-    ],
-    liveries: [
-      { role: "Standard Patrol",   livery: "Patrol",           minRank: "Deputy" },
-      { role: "Canine Unit",        livery: "K9 · Unmarked",   minRank: "Deputy" },
-      { role: "Traffic Unit (TED)", livery: "Traffic · Unmarked", minRank: "Deputy" },
-      { role: "Corporal+",          livery: "Patrol",           minRank: "Corporal" },
-      { role: "Sergeant+",          livery: "Low Profile",      minRank: "Sergeant" },
-      { role: "Lieutenant+",        livery: "Unmarked",         minRank: "Lieutenant" },
-    ],
-  },
-  {
-    key: "lscso",
-    label: "LSCSO",
-    sourceGid: "132458634",
-    restrictions: [
-      "Senior Deputy+ may use ALPRs (with SEB active).",
-      "NO TURBO on any patrol vehicle.",
-      "Use /savevehicle to save your VMS configuration.",
-    ],
-    liveries: [
-      { role: "Standard Patrol",    livery: "Patrol",              minRank: "Deputy" },
-      { role: "Canine Unit",         livery: "K9",                  minRank: "Deputy" },
-      { role: "Traffic Unit (SEB)",  livery: "TEU – ALPR Cars",     minRank: "Deputy" },
-      { role: "Corporal+",           livery: "Patrol · BC: White",  minRank: "Corporal" },
-      { role: "Sergeant+",           livery: "Ghosted",             minRank: "Sergeant" },
-      { role: "Lieutenant+",         livery: "Unmarked",            minRank: "Lieutenant" },
-    ],
-  },
-];
-
-const APPROVED_COLORS = [
-  "Black", "Graphite", "Black Steel", "Dark Steel", "Silver",
-  "Bluish Silver", "Rolled Steel", "Shadow Silver", "Stone Silver",
-  "Midnight Silver", "Cast Iron Silver", "Anthracite Black",
-  "Sunset Red", "Cabernet Red", "Dark Blue", "Diamond Blue",
-  "Midnight Blue", "Very Dark Blue", "Carbon Black",
-  "Bleached Brown", "Cream", "Ice White", "Frost White",
-];
-
-const DENIED_COLORS = [
-  "Red", "Tornio Red", "Formula Red", "Blaze Red", "Grace Red",
-  "Garnet Red", "Candy Red", "Lava Red", "Wine Red",
-  "Orange", "Sunrise Orange", "Bright Orange", "Gold",
-  "Yellow", "Race Yellow", "Dew Yellow",
-  "Dark Green", "Racing Green", "Sea Green", "Olive Green",
-  "Bright Green", "Gasoline Green", "Lime Green",
-  "Galaxy Blue", "Saxon Blue", "Blue", "Mariner Blue",
-  "Harbor Blue", "Surf Blue", "Nautical Blue", "Ultra Blue",
-  "Racing Blue", "Light Blue", "Midnight Purple",
-  "Scafter Purple", "Spinnaker Purple", "Bright Purple",
-  "Bronze", "Feltzer Brown", "Creek Brown", "Chocolate Brown",
-  "Maple Brown", "Saddle Brown", "Straw Brown", "Moss Brown",
-  "Bison Brown", "Woodbeech Brown", "Beechwood Brown",
-  "Sienna Brown", "Sandy Brown",
-  "Hot Pink", "Salmon Pink", "Pfister Pink",
-];
-
-// ── Vehicle sub-components ────────────────────────────────────────────────────
-
-function LiveryTable({ dept }: { dept: VehicleDept }) {
-  return (
-    <div className="space-y-6">
-      {/* Restrictions banner */}
-      <div className="panel border border-amber-500/15 bg-amber-500/5 px-5 py-4">
-        <div className="flex items-start gap-2.5 mb-3">
-          <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" strokeWidth={1.5} />
-          <span className="font-display text-[9px] tracking-[0.35em] text-amber-400 uppercase font-semibold">
-            Vehicle Restrictions
-          </span>
-        </div>
-        <ul className="space-y-1.5">
-          {dept.restrictions.map((r, i) => (
-            <li key={i} className="flex items-start gap-2 text-[11px] text-[var(--text-secondary)]">
-              <span className="text-amber-400/60 mt-0.5 flex-shrink-0">›</span>
-              {r}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Livery table */}
-      <div className="panel overflow-hidden">
-        <div className="px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-panel-alt)]">
-          <span className="font-display text-[9px] tracking-[0.4em] text-badge uppercase">
-            Livery Assignments
-          </span>
-        </div>
-        {dept.liveries.map((l, i) => (
-          <div key={i}
-            className="flex items-center gap-4 px-4 py-3 border-b border-[var(--border)]/40 last:border-0 hover:bg-[var(--badge)]/4 transition-colors">
-            <div className="flex-1 min-w-0">
-              <p className="font-display text-sm font-semibold text-[var(--text-primary)]">{l.role}</p>
-              {l.minRank && (
-                <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{l.minRank}+</p>
-              )}
-            </div>
-            <span className="font-mono text-xs font-bold text-badge bg-badge/10 border border-badge/20 px-3 py-1 rounded whitespace-nowrap flex-shrink-0">
-              {l.livery}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Source link */}
-      <div className="flex justify-center">
-        <a
-          href={`https://docs.google.com/spreadsheets/d/158W4-DS5H19sNJs9uc-TZHPxH0tbZONdDVzIw1hFKxc/edit?gid=${dept.sourceGid}`}
-          target="_blank" rel="noopener noreferrer"
-          className="flex items-center gap-1.5 font-display tracking-widest uppercase text-[10px] text-badge/50 hover:text-badge transition-colors"
-        >
-          <ExternalLink className="w-3 h-3" /> View full vehicle structure
+function AETab({ data, sheetUrl }: { data: AEData; sheetUrl: string }) {
+  if (data.source === "fallback" || data.categories.length === 0) {
+    return (
+      <div className="panel flex flex-col items-center justify-center py-16 gap-4">
+        <p className="text-[var(--text-muted)] text-sm font-display tracking-wide">
+          Could not load equipment data
+        </p>
+        <a href={sheetUrl} target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-1.5 font-display tracking-widest uppercase text-[10px] text-badge/60 hover:text-badge transition-colors">
+          <ExternalLink className="w-3 h-3" /> View in spreadsheet
         </a>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-function ColorsTab() {
   return (
-    <div className="space-y-8 max-w-4xl">
-      <div className="panel border border-[var(--badge)]/10 px-5 py-4">
-        <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
-          Approved colors for unmarked and ghosted patrol vehicles. Only classic and metallic paint options are permitted.
-          Custom colors, neons, pearlescent, or chrome finishes are not allowed.
-        </p>
-      </div>
-
-      {/* Approved */}
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="h-[1px] flex-1 bg-emerald-500/20" />
-          <span className="font-display text-[9px] tracking-[0.4em] text-emerald-400 uppercase">Approved</span>
-          <div className="h-[1px] flex-1 bg-emerald-500/20" />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {APPROVED_COLORS.map(c => (
-            <span key={c}
-              className="font-display text-[10px] tracking-wide px-3 py-1.5 rounded border border-emerald-500/25 bg-emerald-500/10 text-emerald-400">
-              {c}
+    <div className="space-y-8 max-w-5xl">
+      {data.categories.map(cat => (
+        <div key={cat.name}>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-[1px] flex-1 bg-[var(--badge)]/20" />
+            <span className="font-display text-[9px] tracking-[0.4em] text-badge uppercase whitespace-nowrap">
+              {cat.name}
             </span>
-          ))}
+            <div className="h-[1px] flex-1 bg-[var(--badge)]/20" />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {cat.items.map(item => (
+              <div key={item}
+                className="panel px-4 py-2.5 border border-[var(--badge)]/10 hover:border-[var(--badge)]/30 transition-colors group cursor-default">
+                <span className="font-mono text-lg font-black text-badge leading-none group-hover:scale-105 transition-transform inline-block">
+                  {item}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-
-      {/* Denied */}
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="h-[1px] flex-1 bg-red-500/20" />
-          <span className="font-display text-[9px] tracking-[0.4em] text-red-400 uppercase">Not Approved</span>
-          <div className="h-[1px] flex-1 bg-red-500/20" />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {DENIED_COLORS.map(c => (
-            <span key={c}
-              className="font-display text-[10px] tracking-wide px-3 py-1.5 rounded border border-[var(--border)] bg-[var(--bg-panel-alt)] text-[var(--text-muted)] line-through">
-              {c}
-            </span>
-          ))}
-        </div>
-      </div>
-
+      ))}
       <div className="flex justify-center">
-        <a
-          href="https://docs.google.com/spreadsheets/d/158W4-DS5H19sNJs9uc-TZHPxH0tbZONdDVzIw1hFKxc/edit?gid=89417412"
-          target="_blank" rel="noopener noreferrer"
-          className="flex items-center gap-1.5 font-display tracking-widest uppercase text-[10px] text-badge/50 hover:text-badge transition-colors"
-        >
+        <a href={sheetUrl} target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-1.5 font-display tracking-widest uppercase text-[10px] text-badge/50 hover:text-badge transition-colors">
           <ExternalLink className="w-3 h-3" /> View source spreadsheet
         </a>
       </div>
@@ -703,17 +557,15 @@ function SubTabs({ options, active, onChange }: {
 // ── Main export ───────────────────────────────────────────────────────────────
 
 const MAIN_TABS = [
-  { key: "uniforms", label: "Uniforms" },
-  { key: "vehicles", label: "Vehicles" },
-  { key: "colors",   label: "Unmarked Colors" },
+  { key: "uniforms",  label: "Uniforms"            },
+  { key: "equipment", label: "Auth. Equipment"      },
 ];
 
-export function UniformsClient() {
+export function UniformsClient({ aeData, aeSheetUrl }: { aeData: AEData; aeSheetUrl: string }) {
   const [mainTab, setMainTab] = useState<string>("uniforms");
   const [deptKey, setDeptKey] = useState<string>("bcso");
 
-  const activeDept    = DEPARTMENTS.find(d => d.key === deptKey)!;
-  const activeVehDept = VEHICLE_DEPTS.find(d => d.key === deptKey)!;
+  const activeDept = DEPARTMENTS.find(d => d.key === deptKey)!;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -722,11 +574,20 @@ export function UniformsClient() {
         <span className="font-display text-[10px] tracking-[0.5em] text-badge uppercase block mb-2">
           Department Portal
         </span>
-        <h1 className="font-display text-xl sm:text-3xl font-bold text-primary-color tracking-tight">
-          UNIFORM &amp; VEHICLE STRUCTURE
+        <h1 className="font-display text-xl sm:text-3xl font-bold text-primary-color tracking-tight flex items-center gap-3">
+          UNIFORM STRUCTURE
+          {mainTab === "equipment" && (
+            aeData.source === "live"
+              ? <span className="text-[9px] font-display tracking-[0.3em] uppercase text-emerald-400 font-semibold flex items-center gap-1 mt-1 flex-shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />Live
+                </span>
+              : <span className="text-[9px] font-display tracking-[0.3em] uppercase text-[var(--text-muted)] font-semibold flex items-center gap-1 mt-1 flex-shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] inline-block" />Offline
+                </span>
+          )}
         </h1>
         <p className="text-[var(--text-secondary)] mt-1 text-sm">
-          Blaine County Sheriff&rsquo;s Office &mdash; Approved Standards &amp; Livery Assignments
+          Blaine County Sheriff&rsquo;s Office &mdash; Approved Uniform Classes &amp; Authorized Equipment
         </p>
       </div>
 
@@ -771,20 +632,10 @@ export function UniformsClient() {
           </>
         )}
 
-        {/* ── Vehicles tab ─────────────────────────────────── */}
-        {mainTab === "vehicles" && (
-          <>
-            <SubTabs
-              options={VEHICLE_DEPTS.map(d => ({ key: d.key, label: d.label }))}
-              active={deptKey}
-              onChange={setDeptKey}
-            />
-            <LiveryTable dept={activeVehDept} />
-          </>
+        {/* ── Auth Equipment tab ───────────────────────────── */}
+        {mainTab === "equipment" && (
+          <AETab data={aeData} sheetUrl={aeSheetUrl} />
         )}
-
-        {/* ── Colors tab ───────────────────────────────────── */}
-        {mainTab === "colors" && <ColorsTab />}
 
       </div>
     </div>

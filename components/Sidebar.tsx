@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { BookOpen, Users, Star, Home, Sun, Moon, Shield, Menu, X, AlertTriangle, Layers, Package } from "lucide-react";
+import { BookOpen, Users, Star, Home, Sun, Moon, Shield, Menu, X, AlertTriangle, Layers, Car } from "lucide-react";
 import { AmbientPoliceGlow } from "./PoliceLightBar";
 
 const NAV = [
@@ -17,7 +17,7 @@ const NAV = [
       { href: "/roster",    icon: Users,         label: "Personnel Roster" },
       { href: "/staff",     icon: Star,          label: "Command Staff"    },
       { href: "/uniforms",   icon: Layers,        label: "Uniforms"         },
-      { href: "/equipment",  icon: Package,       label: "Auth. Equipment"  },
+      { href: "/vehicles",   icon: Car,           label: "Vehicles"         },
       { href: "/complaint",  icon: AlertTriangle, label: "File a Complaint" },
     ],
   },
