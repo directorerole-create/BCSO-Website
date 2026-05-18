@@ -74,23 +74,76 @@ function parseRankVehicles(rows: string[][]): RankVehicles[] {
 
 // ── Color parser ──────────────────────────────────────────────────────────────
 
+const SKIP_COLOR_NAMES = /color|approved|denied|sheriff|office|unmarked|classic|metallic/i;
+
 function parseColors(rows: string[][]): ColorEntry[] {
   const entries: ColorEntry[] = [];
   const seen = new Set<string>();
+
   for (const row of rows) {
-    // Colors come in pairs across the row: Name | (blank) | Yes/No | Name | (blank) | Yes/No
-    for (let i = 0; i + 2 < row.length; i += 3) {
-      const name = row[i]?.trim();
-      const status = row[i + 2]?.trim().toLowerCase();
-      if (!name || name.length > 40) continue;
-      if (status !== "yes" && status !== "no") continue;
-      if (seen.has(name)) continue;
-      seen.add(name);
-      entries.push({ name, approved: status === "yes" });
+    const cells = row.map(c => c.trim());
+    // Scan every cell; when we find a plausible color name look ahead up to 3 cells for Yes/No
+    let i = 0;
+    while (i < cells.length) {
+      const name = cells[i];
+      if (!name || name.length > 40 || SKIP_COLOR_NAMES.test(name) || seen.has(name)) {
+        i++;
+        continue;
+      }
+      // Look for Yes / No within the next 3 cells
+      let statusIdx = -1;
+      for (let j = i + 1; j <= Math.min(i + 3, cells.length - 1); j++) {
+        const s = cells[j].toLowerCase();
+        if (s === "yes" || s === "no") { statusIdx = j; break; }
+      }
+      if (statusIdx !== -1) {
+        seen.add(name);
+        entries.push({ name, approved: cells[statusIdx].toLowerCase() === "yes" });
+        i = statusIdx + 1;
+      } else {
+        i++;
+      }
     }
   }
   return entries;
 }
+
+// Fallback color data (from official spreadsheet — used when live fetch fails)
+const FALLBACK_COLORS: ColorEntry[] = [
+  { name: "Black",           approved: true  }, { name: "Graphite",        approved: true  },
+  { name: "Black Steel",     approved: true  }, { name: "Dark Steel",       approved: true  },
+  { name: "Silver",          approved: true  }, { name: "Bluish Silver",    approved: true  },
+  { name: "Rolled Steel",    approved: true  }, { name: "Shadow Silver",    approved: true  },
+  { name: "Stone Silver",    approved: true  }, { name: "Midnight Silver",  approved: true  },
+  { name: "Cast Iron Silver",approved: true  }, { name: "Anthracite Black", approved: true  },
+  { name: "Sunset Red",      approved: true  }, { name: "Cabernet Red",     approved: true  },
+  { name: "Dark Blue",       approved: true  }, { name: "Diamond Blue",     approved: true  },
+  { name: "Midnight Blue",   approved: true  }, { name: "Very Dark Blue",   approved: true  },
+  { name: "Carbon Black",    approved: true  }, { name: "Bleached Brown",   approved: true  },
+  { name: "Cream",           approved: true  }, { name: "Ice White",        approved: true  },
+  { name: "Frost White",     approved: true  },
+  { name: "Red",             approved: false }, { name: "Tornio Red",       approved: false },
+  { name: "Formula Red",     approved: false }, { name: "Blaze Red",        approved: false },
+  { name: "Grace Red",       approved: false }, { name: "Garnet Red",       approved: false },
+  { name: "Candy Red",       approved: false }, { name: "Lava Red",         approved: false },
+  { name: "Wine Red",        approved: false }, { name: "Orange",           approved: false },
+  { name: "Sunrise Orange",  approved: false }, { name: "Bright Orange",    approved: false },
+  { name: "Gold",            approved: false }, { name: "Yellow",           approved: false },
+  { name: "Race Yellow",     approved: false }, { name: "Dew Yellow",       approved: false },
+  { name: "Dark Green",      approved: false }, { name: "Racing Green",     approved: false },
+  { name: "Sea Green",       approved: false }, { name: "Olive Green",      approved: false },
+  { name: "Bright Green",    approved: false }, { name: "Gasoline Green",   approved: false },
+  { name: "Lime Green",      approved: false }, { name: "Galaxy Blue",      approved: false },
+  { name: "Saxon Blue",      approved: false }, { name: "Blue",             approved: false },
+  { name: "Mariner Blue",    approved: false }, { name: "Harbor Blue",      approved: false },
+  { name: "Surf Blue",       approved: false }, { name: "Nautical Blue",    approved: false },
+  { name: "Ultra Blue",      approved: false }, { name: "Racing Blue",      approved: false },
+  { name: "Light Blue",      approved: false }, { name: "Midnight Purple",  approved: false },
+  { name: "Scafter Purple",  approved: false }, { name: "Spinnaker Purple", approved: false },
+  { name: "Bright Purple",   approved: false }, { name: "Bronze",           approved: false },
+  { name: "Hot Pink",        approved: false }, { name: "Salmon Pink",      approved: false },
+  { name: "Pfister Pink",    approved: false },
+];
 
 // ── Fetch helpers ─────────────────────────────────────────────────────────────
 
@@ -109,11 +162,13 @@ async function fetchColors(): Promise<ColorData> {
   try {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_COLORS}`;
     const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) return { colors: [], source: "fallback" };
-    const colors = parseColors(parseCSV(await res.text()));
-    if (colors.length > 0) return { colors, source: "live" };
+    if (res.ok) {
+      const colors = parseColors(parseCSV(await res.text()));
+      if (colors.length > 0) return { colors, source: "live" };
+    }
   } catch { /* fall through */ }
-  return { colors: [], source: "fallback" };
+  // Use known fallback color list so the tab always shows data
+  return { colors: FALLBACK_COLORS, source: "fallback" };
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────

@@ -160,9 +160,7 @@ export default async function HomePage() {
             BLAINE COUNTY
             <span className="block text-badge">SHERIFF&apos;S OFFICE</span>
           </h1>
-          <p className="text-[var(--text-muted)] text-sm tracking-widest uppercase font-display mb-6">
-            Roleplay Division &mdash; Est. 2022
-          </p>
+          <div className="mb-6" />
 
           <div className="flex flex-wrap justify-center gap-2.5">
             {quickLinks.map(({ href, label }) => (
