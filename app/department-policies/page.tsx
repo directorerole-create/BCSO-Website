@@ -4,34 +4,19 @@ import { DeptPolicy, DEPT_POLICIES } from "@/lib/dept-policies-data";
 
 const DOC_ID = "1cLsB7Xgt_2VUI64OdvdFvHLHRBfAZF_FjuS3vrX3p1U";
 
-const POLICY_TABS = [
-  "t.62fc2crsz9u0",  // BCSO.001 - Vehicle Pursuit
-  "t.ocvm42klu6pd",  // BCSO.002 - Suspect Detention & Arrest
-  "t.tt5755as3u6w",  // BCSO.003 - Supervisor Request & Response
-  "t.amtk98ms9qa7",  // BCSO.004 - Female Suspect Search
-  "t.wrc111um5esm",  // BCSO.005 - Ride-Along
-  "t.26qv6ar024aa",  // BCSO.006 - Cruise Lights Usage
-  "t.wamcnjh4q9to",  // BCSO.007 - DUI Investigations & SFSTs
-  "t.lemffwu40mmu",  // BCSO.008 - Unmarked Vehicle
-  "t.krald6ncigxl",  // BCSO.009 - Plain Clothes Usage
-  "t.ruu8d15dyyb9",  // BCSO.010 - Firearm Usage
-  "t.hwsjacbpp9wh",  // BCSO.011 - UC Vehicle
-  "t.mtzc116ol9t",   // BCSO.012 - Off Duty Roleplay
-];
-
-const POLICY_NAMES = [
-  "Vehicle Pursuit",
-  "Suspect Detention & Arrest",
-  "Supervisor Request & Response",
-  "Female Suspect Search",
-  "Ride-Along",
-  "Cruise Lights Usage",
-  "DUI Investigations & SFSTs",
-  "Unmarked Vehicle",
-  "Plain Clothes Usage",
-  "Firearm Usage",
-  "UC Vehicle",
-  "Off Duty Roleplay",
+const POLICY_TABS: { id: string; num: number; name: string }[] = [
+  { id: "t.62fc2crsz9u0", num: 1,  name: "Vehicle Pursuit" },
+  { id: "t.ocvm42klu6pd", num: 2,  name: "Suspect Detention & Arrest" },
+  { id: "t.tt5755as3u6w", num: 3,  name: "Supervisor Request & Response" },
+  { id: "t.amtk98ms9qa7", num: 4,  name: "Female Suspect Search" },
+  { id: "t.wrc111um5esm", num: 5,  name: "Ride-Along" },
+  // BCSO.006 - Cruise Lights Usage: tab not yet created in Google Doc
+  { id: "t.wamcnjh4q9to", num: 7,  name: "DUI Investigations & SFSTs" },
+  { id: "t.lemffwu40mmu", num: 8,  name: "Unmarked Vehicle" },
+  { id: "t.krald6ncigxl", num: 9,  name: "Plain Clothes Usage" },
+  { id: "t.ruu8d15dyyb9", num: 10, name: "Firearm Usage" },
+  // BCSO.011 - UC Vehicle: tab not yet created in Google Doc
+  { id: "t.mtzc116ol9t",  num: 12, name: "Off Duty Roleplay" },
 ];
 
 function htmlToText(html: string): string {
@@ -61,7 +46,7 @@ const SECTION_NAME_RE = /^(purpose|scope|definitions?|directive|policy|procedure
 const ORG_NAME_RE = /^(blaine county|sheriff.?s office|bcso|table of contents?)\s*$/i;
 
 /** Parse a single policy tab's HTML into a DeptPolicy. */
-function parseTabToPolicy(html: string, fallbackIndex: number, fallbackName?: string): DeptPolicy | null {
+function parseTabToPolicy(html: string, policyNum: number, fallbackName: string): DeptPolicy | null {
   const body = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1] ?? html;
   const tokens = body.split(/(<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>)/gi);
 
@@ -158,21 +143,14 @@ function parseTabToPolicy(html: string, fallbackIndex: number, fallbackName?: st
 
   flushSection();
 
-  // If no title heading was found, derive from fallback name or doc number
-  if (!title) {
-    title = fallbackName || docNumber || "";
-  }
+  // If no title heading was found, use the known fallback name
+  if (!title) title = fallbackName;
 
   if (!title || sections.length === 0) return null;
 
-  // ID always uses tab position — guarantees uniqueness across all 12 policies
-  const posId = (fallbackIndex + 1).toString().padStart(3, "0");
-
-  // Display number from extracted docNumber if available, else fall back to position
-  const numMatch = docNumber.match(/(\d+)/);
-  const displayNum = numMatch
-    ? (numMatch[1].replace(/^0+/, "") || "0").padStart(3, "0")
-    : posId;
+  // ID and number always use the tab's known BCSO number — guaranteed correct
+  const posId = policyNum.toString().padStart(3, "0");
+  const displayNum = posId;
 
   // Strip any leading "BCSO.NNN — " prefix that ended up in the title
   const cleanTitle = title.replace(/^BCSO\.?\d+\s*[-–—]?\s*/i, "").trim() || title;
@@ -188,12 +166,12 @@ function parseTabToPolicy(html: string, fallbackIndex: number, fallbackName?: st
   };
 }
 
-async function fetchTab(tabId: string, index: number): Promise<DeptPolicy | null> {
-  const url = `https://docs.google.com/document/d/${DOC_ID}/export?format=html&tab=${tabId}`;
+async function fetchTab(tab: { id: string; num: number; name: string }): Promise<DeptPolicy | null> {
+  const url = `https://docs.google.com/document/d/${DOC_ID}/export?format=html&tab=${tab.id}`;
   try {
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) return null;
-    return parseTabToPolicy(await res.text(), index, POLICY_NAMES[index]);
+    return parseTabToPolicy(await res.text(), tab.num, tab.name);
   } catch {
     return null;
   }
@@ -201,7 +179,7 @@ async function fetchTab(tabId: string, index: number): Promise<DeptPolicy | null
 
 async function getDeptPolicies(): Promise<{ policies: DeptPolicy[]; source: "live" | "offline" }> {
   try {
-    const results  = await Promise.all(POLICY_TABS.map((tab, i) => fetchTab(tab, i)));
+    const results  = await Promise.all(POLICY_TABS.map(tab => fetchTab(tab)));
     const policies = results.filter((p): p is DeptPolicy => p !== null);
     if (policies.length > 0) return { policies, source: "live" };
   } catch { /* fall through */ }
