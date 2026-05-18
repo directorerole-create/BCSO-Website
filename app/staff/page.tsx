@@ -15,12 +15,13 @@ const COL = {
 
 // Ranks shown on this page and the role title to display for each
 const COMMAND_RANKS: Record<string, string> = {
-  "Sheriff":      "Chief Executive & Law Enforcement Authority",
-  "Undersheriff": "Second in Command",
-  "Chief Deputy": "Operations Commander",
-  "Colonel":      "Senior Field Commander",
-  "Captain":      "Bureau Commander",
-  "Lieutenant":   "Field Operations Lieutenant",
+  "Sheriff":           "Chief Executive & Law Enforcement Authority",
+  "Undersheriff":      "Second in Command",
+  "Assistant Sheriff": "Assistant to the Sheriff",
+  "Chief Deputy":      "Operations Commander",
+  "Major":           "Senior Field Commander",
+  "Captain":           "Bureau Commander",
+  "Lieutenant":        "Field Operations Lieutenant",
 };
 
 function parseCSV(text: string): string[][] {

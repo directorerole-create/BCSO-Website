@@ -13,13 +13,13 @@ export type CommandMember = {
 };
 
 const RANK_ORDER: Record<string, number> = {
-  "Sheriff": 1, "Undersheriff": 2, "Chief Deputy": 3, "Colonel": 4,
-  "Captain": 5, "Lieutenant": 6,
+  "Sheriff": 1, "Undersheriff": 2, "Assistant Sheriff": 3,
+  "Chief Deputy": 4, "Major": 5,
+  "Captain": 6, "Lieutenant": 7,
 };
 
 const INSIGNIA: Record<string, string> = {
   "Chief Deputy": "/1star.png",
-  "Colonel":      "/colonel.jpg",
 };
 
 function initials(name: string) {
@@ -115,8 +115,8 @@ export function StaffClient({ staff }: { staff: CommandMember[] }) {
     (a, b) => (RANK_ORDER[a.rank] ?? 99) - (RANK_ORDER[b.rank] ?? 99)
   );
 
-  const exec     = sorted.filter(m => ["Sheriff", "Undersheriff"].includes(m.rank));
-  const command  = sorted.filter(m => ["Chief Deputy", "Colonel"].includes(m.rank));
+  const exec     = sorted.filter(m => ["Sheriff", "Undersheriff", "Assistant Sheriff"].includes(m.rank));
+  const command  = sorted.filter(m => ["Chief Deputy", "Major"].includes(m.rank));
   const captains = sorted.filter(m => m.rank === "Captain");
   const lts      = sorted.filter(m => m.rank === "Lieutenant");
 

@@ -77,7 +77,7 @@ The policies contained within this section outline how authority is exercised, h
 - Sheriff
 - Undersheriff
 - Chief Deputy
-- Colonel
+- Major
 
 **Senior Staff**
 - Captain
@@ -106,7 +106,7 @@ The policies contained within this section outline how authority is exercised, h
 
 **Chief Deputy** – Serves as the Patrol Operations Bureau Commander providing oversight of all patrol operations and the Professional Standards Bureau (PSB).
 
-**Colonel** – Serves as the Division Operations Bureau Commander, overseeing all investigative, specialty, and support divisions.
+**Major** – Serves as the Division Operations Bureau Commander, overseeing all investigative, specialty, and support divisions.
 
 **Captain (Patrol Operations Bureau)** – Oversees day-to-day patrol operations and is responsible for supervision of patrol supervisors and deployment of patrol resources.
 

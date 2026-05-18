@@ -40,7 +40,7 @@ export const STAFF_DATA: StaticStaffMember[] = [
     id: "s4",
     name: "Austin B.",
     badge_number: "3004",
-    rank: "Colonel",
+    rank: "Major",
     role: "Senior Field Commander",
     division: "Field Operations",
     avatar_url: null,
