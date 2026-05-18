@@ -18,9 +18,7 @@ const RANK_ORDER: Record<string, number> = {
   "Captain": 6, "Lieutenant": 7,
 };
 
-const INSIGNIA: Record<string, string> = {
-  "Chief Deputy": "/1star.png",
-};
+const INSIGNIA: Record<string, string> = {};
 
 function initials(name: string) {
   return name.split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase();
