@@ -1,5 +1,5 @@
 import React from "react";
-import { Shield, Loader2 } from "lucide-react";
+import { Package, Loader2 } from "lucide-react";
 
 function Shimmer({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
@@ -9,18 +9,7 @@ function Shimmer({ className, style }: { className?: string; style?: React.CSSPr
   );
 }
 
-function CardSkeleton() {
-  return (
-    <div className="flex flex-col items-center w-40">
-      <Shimmer className="w-36 h-44 rounded-lg mb-3" />
-      <Shimmer className="h-2 w-20 mb-2" />
-      <Shimmer className="h-3.5 w-28 mb-1.5" />
-      <Shimmer className="h-2.5 w-16" />
-    </div>
-  );
-}
-
-export default function StaffLoading() {
+export default function EquipmentLoading() {
   return (
     <>
       <style>{`
@@ -35,46 +24,38 @@ export default function StaffLoading() {
 
       <div className="min-h-screen py-6 sm:py-8 px-4 sm:px-6">
         {/* Header */}
-        <div className="mb-10">
+        <div className="mb-8">
           <Shimmer className="h-2.5 w-36 mb-3" />
           <div className="flex items-center gap-3">
-            <Shield className="w-6 h-6 sm:w-7 sm:h-7 text-badge/25 flex-shrink-0" strokeWidth={1.5} />
+            <Package className="w-6 h-6 sm:w-7 sm:h-7 text-badge/25 flex-shrink-0" strokeWidth={1.5} />
             <span className="font-display text-2xl sm:text-3xl font-bold text-primary-color tracking-tight opacity-30">
-              CHAIN OF COMMAND
+              AUTHORIZED EQUIPMENT
             </span>
           </div>
-          <Shimmer className="h-3 w-60 mt-2" />
+          <Shimmer className="h-3 w-72 mt-2" />
         </div>
 
-        {/* Executive tier */}
-        <div className="flex justify-center gap-12 mb-12">
-          <CardSkeleton />
-          <CardSkeleton />
-          <CardSkeleton />
-        </div>
-
-        {/* Divider */}
-        <div className="flex items-center gap-4 mb-10 max-w-2xl mx-auto">
-          <div className="flex-1 h-px bg-[var(--badge)]/15" />
-          <Shimmer className="h-2.5 w-24" />
-          <div className="flex-1 h-px bg-[var(--badge)]/15" />
-        </div>
-
-        {/* Command tier */}
-        <div className="flex justify-center flex-wrap gap-10 mb-12">
-          {[1, 2, 3].map(i => <CardSkeleton key={i} />)}
-        </div>
-
-        {/* Divider */}
-        <div className="flex items-center gap-4 mb-10 max-w-2xl mx-auto">
-          <div className="flex-1 h-px bg-[var(--badge)]/15" />
-          <Shimmer className="h-2.5 w-20" />
-          <div className="flex-1 h-px bg-[var(--badge)]/15" />
-        </div>
-
-        {/* Senior staff tier */}
-        <div className="flex justify-center flex-wrap gap-10">
-          {[1, 2, 3, 4].map(i => <CardSkeleton key={i} />)}
+        {/* Category blocks */}
+        <div className="space-y-8 max-w-5xl">
+          {[13, 17, 4, 5].map((count, ci) => (
+            <div key={ci}>
+              {/* Divider + label */}
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-[1px] flex-1 bg-[var(--badge)]/20" />
+                <Shimmer className="h-2 w-48" />
+                <div className="h-[1px] flex-1 bg-[var(--badge)]/20" />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {Array.from({ length: count }).map((_, i) => (
+                  <div key={i} className="panel p-3 flex flex-col gap-1.5 border border-[var(--badge)]/10">
+                    <Shimmer className="h-6 w-12" />
+                    <Shimmer className="h-3 w-full" />
+                    <Shimmer className="h-3 w-3/4" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -82,7 +63,7 @@ export default function StaffLoading() {
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2.5 px-5 py-2.5 rounded-full border border-[var(--badge)]/30 bg-[var(--bg-panel)] shadow-xl shadow-black/30">
         <Loader2 className="w-3.5 h-3.5 text-badge animate-spin flex-shrink-0" />
         <span className="font-display text-[10px] tracking-[0.35em] text-[var(--text-secondary)] uppercase whitespace-nowrap">
-          Fetching Command Staff…
+          Fetching Equipment…
         </span>
       </div>
     </>

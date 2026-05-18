@@ -7,7 +7,7 @@ import Image from "next/image";
 const RANK_TIERS = [
   {
     key: "admin", label: "Administration", color: "text-yellow-400",
-    ranks: ["Head Administration", "Sheriff", "Undersheriff", "Assistant Sheriff", "Chief Deputy", "Major"],
+    ranks: ["Sheriff", "Undersheriff", "Assistant Sheriff", "Chief Deputy", "Major"],
   },
   {
     key: "senior", label: "Senior Staff", color: "text-orange-400",
@@ -30,8 +30,7 @@ const RANK_TIERS = [
 ];
 
 const RANK_ORDER: Record<string, number> = {
-  "Head Administration": 1,
-  "Sheriff":             2,
+  "Sheriff":             1,
   "Undersheriff":        3,
   "Assistant Sheriff":   4,
   "Chief Deputy":        5,

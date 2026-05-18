@@ -1,72 +1,93 @@
 import React from "react";
-import { Users } from "lucide-react";
+import { Users, Loader2 } from "lucide-react";
 
-function Skeleton({ className, style }: { className?: string; style?: React.CSSProperties }) {
+function Shimmer({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
-    <div className={`animate-pulse rounded bg-[var(--badge)]/8 ${className ?? ""}`} style={style} />
+    <div className={`relative overflow-hidden rounded bg-[var(--badge)]/6 ${className ?? ""}`} style={style}>
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.6s_infinite] bg-gradient-to-r from-transparent via-[var(--badge)]/10 to-transparent" />
+    </div>
   );
 }
 
 export default function RosterLoading() {
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <div className="px-4 sm:px-6 pt-6 sm:pt-8 pb-4 sm:pb-5 border-b border-[var(--border)]">
-        <Skeleton className="h-2.5 w-32 mb-3" />
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Users className="w-5 h-5 sm:w-7 sm:h-7 text-badge/30 flex-shrink-0" strokeWidth={1.5} />
-          <span className="font-display text-xl sm:text-3xl font-bold text-primary-color tracking-tight opacity-40">
-            PERSONNEL ROSTER
-          </span>
+    <>
+      <style>{`
+        @keyframes shimmer { to { transform: translateX(200%); } }
+        @keyframes progress { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
+      `}</style>
+
+      {/* Top progress bar */}
+      <div className="fixed top-0 inset-x-0 h-[2px] z-50 bg-[var(--badge)]/10 overflow-hidden">
+        <div className="h-full w-1/3 bg-badge/70 animate-[progress_1.8s_ease-in-out_infinite]" />
+      </div>
+
+      <div className="min-h-screen py-6 sm:py-8 px-4 sm:px-6">
+        {/* Header */}
+        <div className="mb-6">
+          <Shimmer className="h-2.5 w-36 mb-3" />
+          <div className="flex items-center gap-3">
+            <Users className="w-6 h-6 sm:w-7 sm:h-7 text-badge/25 flex-shrink-0" strokeWidth={1.5} />
+            <span className="font-display text-2xl sm:text-3xl font-bold text-primary-color tracking-tight opacity-30">
+              PUBLIC ROSTER
+            </span>
+          </div>
+          <Shimmer className="h-3 w-72 mt-2" />
         </div>
-        <Skeleton className="h-3 w-64 mt-2" />
-      </div>
 
-      {/* Search / filter bar skeleton */}
-      <div className="px-4 sm:px-6 py-3 border-b border-[var(--border)]/50 flex gap-3">
-        <Skeleton className="h-9 flex-1 max-w-sm rounded-lg" />
-        <Skeleton className="h-9 w-28 rounded-lg" />
-        <Skeleton className="h-9 w-28 rounded-lg" />
-      </div>
+        {/* Filter bar */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-5">
+          <div className="flex items-center gap-1 panel px-2 py-1.5">
+            {[48, 80, 68, 56, 48].map((w, i) => (
+              <Shimmer key={i} className="h-7 rounded" style={{ width: w }} />
+            ))}
+          </div>
+          <Shimmer className="h-9 w-64 rounded-lg" />
+        </div>
 
-      {/* Table header skeleton */}
-      <div className="px-4 sm:px-6 py-2 border-b border-[var(--border)]/30">
-        <div className="flex gap-4">
-          {[10, 18, 14, 14, 10, 10, 10, 10].map((w, i) => (
-            <Skeleton key={i} className="h-2.5" style={{ width: `${w}%` }} />
+        {/* Table panel */}
+        <div className="panel overflow-hidden">
+          {/* Table header */}
+          <div className="border-b border-[var(--border)] px-4 py-2.5 flex gap-4">
+            {[60, 160, 90, 180, 150, 100, 80].map((w, i) => (
+              <Shimmer key={i} className="h-2" style={{ width: w, flexShrink: 0 }} />
+            ))}
+          </div>
+
+          {/* Tier groups */}
+          {[
+            { label: "Administration", count: 4 },
+            { label: "Senior Staff",   count: 5 },
+            { label: "Staff",          count: 6 },
+            { label: "Deputies",       count: 10 },
+          ].map(({ label, count }) => (
+            <div key={label}>
+              <div className="px-4 py-1.5 border-b border-[var(--border)] bg-[var(--bg-panel-alt)]/50">
+                <Shimmer className="h-2 w-32" />
+              </div>
+              {Array.from({ length: count }).map((_, i) => (
+                <div key={i} className="px-4 py-2.5 border-b border-[var(--border)]/30 flex gap-4 items-center last:border-0">
+                  <Shimmer className="h-3 rounded" style={{ width: 60,  flexShrink: 0 }} />
+                  <Shimmer className="h-3 rounded" style={{ width: 140, flexShrink: 0 }} />
+                  <Shimmer className="h-3 rounded" style={{ width: 80,  flexShrink: 0 }} />
+                  <Shimmer className="h-3 rounded" style={{ width: 160, flexShrink: 0 }} />
+                  <Shimmer className="h-3 rounded" style={{ width: 120, flexShrink: 0 }} />
+                  <Shimmer className="h-3 rounded" style={{ width: 90,  flexShrink: 0 }} />
+                  <Shimmer className="h-5 w-14 rounded" style={{ flexShrink: 0 }} />
+                </div>
+              ))}
+            </div>
           ))}
         </div>
       </div>
 
-      {/* Row skeletons — group by tier */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-6">
-        {["Administration", "Senior Staff", "Deputies"].map(tier => (
-          <div key={tier}>
-            <Skeleton className="h-3 w-32 mb-3" />
-            <div className="space-y-2">
-              {Array.from({ length: tier === "Administration" ? 3 : tier === "Senior Staff" ? 4 : 8 }).map((_, i) => (
-                <div key={i} className="flex gap-4 items-center py-1.5">
-                  <Skeleton className="h-3" style={{ width: "10%" }} />
-                  <Skeleton className="h-3" style={{ width: "18%" }} />
-                  <Skeleton className="h-3" style={{ width: "14%" }} />
-                  <Skeleton className="h-3" style={{ width: "14%" }} />
-                  <Skeleton className="h-3" style={{ width: "10%" }} />
-                  <Skeleton className="h-3" style={{ width: "10%" }} />
-                  <Skeleton className="h-3" style={{ width: "10%" }} />
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
       {/* Loading pill */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2.5 px-4 py-2 rounded-full border border-[var(--badge)]/20 bg-[var(--bg-panel)] shadow-lg">
-        <span className="w-2 h-2 rounded-full bg-badge animate-pulse" />
-        <span className="font-display text-[10px] tracking-[0.35em] text-[var(--text-muted)] uppercase">
-          Loading Roster…
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2.5 px-5 py-2.5 rounded-full border border-[var(--badge)]/30 bg-[var(--bg-panel)] shadow-xl shadow-black/30">
+        <Loader2 className="w-3.5 h-3.5 text-badge animate-spin flex-shrink-0" />
+        <span className="font-display text-[10px] tracking-[0.35em] text-[var(--text-secondary)] uppercase whitespace-nowrap">
+          Fetching Roster…
         </span>
       </div>
-    </div>
+    </>
   );
 }
